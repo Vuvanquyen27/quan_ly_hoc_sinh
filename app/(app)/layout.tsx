@@ -30,12 +30,18 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     <div className="min-h-screen bg-[#f7f3ea] text-[#1f2933]">
       <header className="border-b border-[#d8cbb4] bg-[#fffaf0]">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
-          <Link
-            href="/tong-quan"
-            className="font-mono text-sm font-semibold tracking-[0.28em] text-[#315c48]"
-          >
-            EDUFLOW
-          </Link>
+          <div className="flex items-center gap-6">
+            <Link
+              href="/tong-quan"
+              className="font-mono text-sm font-semibold tracking-[0.28em] text-[#315c48]"
+            >
+              EDUFLOW
+            </Link>
+            <nav className="hidden items-center gap-4 text-sm sm:flex">
+              <Link href="/tong-quan" className="text-[#3a4a41] hover:text-[#315c48]">Tổng quan</Link>
+              <Link href="/hoc-sinh" className="text-[#3a4a41] hover:text-[#315c48]">Học sinh</Link>
+            </nav>
+          </div>
           <div className="flex items-center gap-4">
             <span className="hidden text-sm text-muted-foreground sm:inline">{ctx.user.email}</span>
             <form action={signOutAction}>
