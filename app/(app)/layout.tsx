@@ -3,6 +3,8 @@ import { redirect } from 'next/navigation'
 import { getSessionContext, isReadOnly } from '@/lib/auth'
 import { signOutAction } from '@/server/auth/actions'
 import { Button } from '@/components/ui/button'
+import { DesktopNav, BottomNav } from '@/components/app-nav'
+import { ThemeToggle } from '@/components/theme-toggle'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const ctx = await getSessionContext()
@@ -10,7 +12,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   if (ctx.profile?.is_locked) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#f7f3ea] px-4 text-center text-[#1f2933]">
+      <main className="flex min-h-screen items-center justify-center px-4 text-center">
         <div className="max-w-md">
           <h1 className="text-xl font-semibold">Tài khoản đã bị khóa</h1>
           <p className="mt-2 text-sm text-muted-foreground">
@@ -27,23 +29,21 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const readOnly = isReadOnly(ctx)
 
   return (
-    <div className="min-h-screen bg-[#f7f3ea] text-[#1f2933]">
-      <header className="border-b border-[#d8cbb4] bg-[#fffaf0]">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
-          <div className="flex items-center gap-6">
+    <div className="min-h-screen">
+      <header className="border-b border-border bg-card">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
+          <div className="flex items-center gap-4 sm:gap-6">
             <Link
               href="/tong-quan"
-              className="font-mono text-sm font-semibold tracking-[0.28em] text-[#315c48]"
+              className="font-mono text-sm font-semibold tracking-[0.28em] text-primary"
             >
               EDUFLOW
             </Link>
-            <nav className="hidden items-center gap-4 text-sm sm:flex">
-              <Link href="/tong-quan" className="text-[#3a4a41] hover:text-[#315c48]">Tổng quan</Link>
-              <Link href="/hoc-sinh" className="text-[#3a4a41] hover:text-[#315c48]">Học sinh</Link>
-            </nav>
+            <DesktopNav />
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-3">
             <span className="hidden text-sm text-muted-foreground sm:inline">{ctx.user.email}</span>
+            <ThemeToggle />
             <form action={signOutAction}>
               <Button variant="outline" size="sm">Đăng xuất</Button>
             </form>
@@ -52,13 +52,14 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       </header>
 
       {readOnly && (
-        <div className="bg-amber-100 px-6 py-2 text-center text-sm text-amber-900">
+        <div className="border-b border-warning/40 bg-warning/15 px-4 py-2 text-center text-sm text-foreground sm:px-6">
           Thuê bao đã hết hạn — bạn đang ở chế độ chỉ đọc.{' '}
           <Link href="/cai-dat" className="font-medium underline">Gia hạn ngay</Link>
         </div>
       )}
 
-      <main className="mx-auto max-w-6xl px-6 py-8">{children}</main>
+      <main className="mx-auto max-w-6xl px-4 py-6 pb-24 sm:px-6 md:pb-8">{children}</main>
+      <BottomNav />
     </div>
   )
 }

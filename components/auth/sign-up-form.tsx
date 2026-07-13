@@ -12,8 +12,8 @@ export function SignUpForm() {
   if (state?.message) {
     return (
       <div className="space-y-4 text-center">
-        <p className="rounded-md bg-emerald-50 px-3 py-3 text-sm text-emerald-800">{state.message}</p>
-        <Link href="/dang-nhap" className="inline-block font-medium text-[#315c48] hover:underline">
+        <p className="rounded-md bg-success/10 px-3 py-3 text-sm text-success">{state.message}</p>
+        <Link href="/dang-nhap" className="inline-block font-medium text-primary hover:underline">
           Tới trang đăng nhập
         </Link>
       </div>
@@ -23,7 +23,7 @@ export function SignUpForm() {
   return (
     <form action={action} className="space-y-4">
       {state?.error && (
-        <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{state.error}</p>
+        <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">{state.error}</p>
       )}
 
       <div className="space-y-1.5">
@@ -42,13 +42,13 @@ export function SignUpForm() {
         <p className="text-xs text-muted-foreground">Ít nhất 8 ký tự.</p>
       </div>
 
-      <Button type="submit" disabled={pending} className="w-full bg-[#315c48] hover:bg-[#244637]">
+      <Button type="submit" disabled={pending} className="w-full">
         {pending ? 'Đang tạo tài khoản…' : 'Bắt đầu dùng thử 14 ngày'}
       </Button>
 
       <p className="text-center text-sm text-muted-foreground">
         Đã có tài khoản?{' '}
-        <Link href="/dang-nhap" className="font-medium text-[#315c48] hover:underline">Đăng nhập</Link>
+        <Link href="/dang-nhap" className="font-medium text-primary hover:underline">Đăng nhập</Link>
       </p>
     </form>
   )

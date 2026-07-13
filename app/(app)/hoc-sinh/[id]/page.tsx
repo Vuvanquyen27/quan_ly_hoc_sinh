@@ -11,9 +11,9 @@ export const metadata: Metadata = { title: 'Chi tiết học sinh — EduFlow' }
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex justify-between gap-4 border-b border-[#f0e7d7] py-2.5 last:border-b-0">
+    <div className="flex flex-col gap-0.5 border-b border-border py-2.5 last:border-b-0 sm:flex-row sm:justify-between sm:gap-4">
       <span className="text-sm text-muted-foreground">{label}</span>
-      <span className="text-sm font-medium text-[#18211d]">{value}</span>
+      <span className="text-sm font-medium break-words text-foreground sm:text-right">{value}</span>
     </div>
   )
 }
@@ -30,9 +30,9 @@ export default async function ChiTietHocSinhPage({
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
-        <Link href="/hoc-sinh" className="text-sm text-[#315c48] hover:underline">← Danh sách học sinh</Link>
+        <Link href="/hoc-sinh" className="text-sm text-primary hover:underline">← Danh sách học sinh</Link>
         <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
-          <h1 className="text-2xl font-semibold tracking-tight text-[#18211d]">{s.full_name}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">{s.full_name}</h1>
           <div className="flex items-center gap-2">
             <Link href={`/hoc-sinh/${s.id}/sua`} className={buttonVariants({ variant: 'outline', size: 'sm' })}>
               Sửa
@@ -45,7 +45,7 @@ export default async function ChiTietHocSinhPage({
         </div>
       </div>
 
-      <div className="rounded-2xl border border-[#d8cbb4] bg-white p-6">
+      <div className="rounded-2xl border border-border bg-card p-6">
         <Row label="Trạng thái" value={STATUS_LABEL[s.status] ?? s.status} />
         <Row label="Lớp / khối" value={s.grade_level ?? '—'} />
         <Row label="Môn học" value={s.subjects?.join(', ') || '—'} />
@@ -59,7 +59,7 @@ export default async function ChiTietHocSinhPage({
         <Row label="Ghi chú" value={s.notes ?? '—'} />
       </div>
 
-      <div className="rounded-2xl border border-dashed border-[#d8cbb4] bg-white p-6 text-sm text-muted-foreground">
+      <div className="rounded-2xl border border-dashed border-border bg-card p-6 text-sm text-muted-foreground">
         Lịch sử buổi học, công nợ và tài liệu của học sinh sẽ hiển thị ở đây trong các giai đoạn tiếp theo.
       </div>
     </div>

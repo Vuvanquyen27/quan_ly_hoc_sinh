@@ -13,7 +13,7 @@ function Field({
 }: { label: string; name?: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
-      <label htmlFor={name} className="text-sm font-medium text-[#3a4a41]">{label}</label>
+      <label htmlFor={name} className="text-sm font-medium text-foreground">{label}</label>
       {children}
     </div>
   )
@@ -29,7 +29,7 @@ export function StudentForm({ student }: { student?: Student }) {
     <form action={action} className="space-y-5">
       {student && <input type="hidden" name="id" value={student.id} />}
       {state?.error && (
-        <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{state.error}</p>
+        <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">{state.error}</p>
       )}
 
       <div className="grid gap-4 sm:grid-cols-2">
@@ -102,7 +102,7 @@ export function StudentForm({ student }: { student?: Student }) {
       </div>
 
       <div className="flex items-center gap-3">
-        <Button type="submit" disabled={pending} className="bg-[#315c48] hover:bg-[#244637]">
+        <Button type="submit" variant="success" disabled={pending} className="w-full sm:w-auto">
           {pending ? 'Đang lưu…' : student ? 'Lưu thay đổi' : 'Thêm học sinh'}
         </Button>
         <Link href="/hoc-sinh" className="text-sm text-muted-foreground hover:underline">Hủy</Link>

@@ -12,10 +12,10 @@ export function ResetForm() {
   return (
     <form action={action} className="space-y-4">
       {state?.error && (
-        <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{state.error}</p>
+        <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">{state.error}</p>
       )}
       {state?.message && (
-        <p className="rounded-md bg-emerald-50 px-3 py-2 text-sm text-emerald-800">{state.message}</p>
+        <p className="rounded-md bg-success/10 px-3 py-2 text-sm text-success">{state.message}</p>
       )}
 
       <div className="space-y-1.5">
@@ -23,12 +23,12 @@ export function ResetForm() {
         <Input id="email" name="email" type="email" placeholder="ban@email.com" required autoComplete="email" />
       </div>
 
-      <Button type="submit" disabled={pending} className="w-full bg-[#315c48] hover:bg-[#244637]">
+      <Button type="submit" disabled={pending} className="w-full">
         {pending ? 'Đang gửi…' : 'Gửi liên kết đặt lại'}
       </Button>
 
       <p className="text-center text-sm text-muted-foreground">
-        <Link href="/dang-nhap" className="font-medium text-[#315c48] hover:underline">Quay lại đăng nhập</Link>
+        <Link href="/dang-nhap" className="font-medium text-primary hover:underline">Quay lại đăng nhập</Link>
       </p>
     </form>
   )

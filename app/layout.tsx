@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Be_Vietnam_Pro, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+const beVietnamPro = Be_Vietnam_Pro({
+  variable: "--font-sans",
+  subsets: ["latin", "vietnamese"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
 });
 
 const geistMono = Geist_Mono({
@@ -17,6 +19,8 @@ export const metadata: Metadata = {
   description: "Quản lý học sinh, lịch dạy và tài chính cho giáo viên cá nhân",
 };
 
+const themeScript = `(function(){try{var t=localStorage.getItem('theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.classList.add('dark')}}catch(e){}})();`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -25,9 +29,13 @@ export default function RootLayout({
   return (
     <html
       lang="vi"
-      className={`${geistSans.variable} ${geistMono.variable} h-full scroll-smooth antialiased`}
+      suppressHydrationWarning
+      className={`${beVietnamPro.variable} ${geistMono.variable} h-full scroll-smooth antialiased`}
     >
-      <body className="flex min-h-full flex-col">{children}</body>
+      <body className="flex min-h-full flex-col">
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        {children}
+      </body>
     </html>
   );
 }

@@ -14,9 +14,9 @@ const STATUS_LABEL: Record<string, string> = {
 
 function StatCard({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
-    <div className="rounded-2xl border border-[#d8cbb4] bg-white p-5">
+    <div className="rounded-2xl border border-border bg-card p-5">
       <div className="text-sm text-muted-foreground">{label}</div>
-      <div className="mt-1 text-2xl font-semibold text-[#18211d]">{value}</div>
+      <div className="mt-1 text-2xl font-semibold text-foreground">{value}</div>
       {hint && <div className="mt-1 text-xs text-muted-foreground">{hint}</div>}
     </div>
   )
@@ -38,7 +38,7 @@ export default async function TongQuanPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-[#18211d]">
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
           Xin chào{name ? `, ${name}` : ''}!
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">Đây là bảng điều khiển của bạn.</p>

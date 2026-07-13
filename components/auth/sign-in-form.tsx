@@ -12,7 +12,7 @@ export function SignInForm() {
   return (
     <form action={action} className="space-y-4">
       {state?.error && (
-        <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{state.error}</p>
+        <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">{state.error}</p>
       )}
 
       <div className="space-y-1.5">
@@ -23,18 +23,18 @@ export function SignInForm() {
       <div className="space-y-1.5">
         <div className="flex items-center justify-between">
           <label htmlFor="password" className="text-sm font-medium">Mật khẩu</label>
-          <Link href="/quen-mat-khau" className="text-xs text-[#315c48] hover:underline">Quên mật khẩu?</Link>
+          <Link href="/quen-mat-khau" className="text-xs text-primary hover:underline">Quên mật khẩu?</Link>
         </div>
         <Input id="password" name="password" type="password" required autoComplete="current-password" />
       </div>
 
-      <Button type="submit" disabled={pending} className="w-full bg-[#315c48] hover:bg-[#244637]">
+      <Button type="submit" disabled={pending} className="w-full">
         {pending ? 'Đang đăng nhập…' : 'Đăng nhập'}
       </Button>
 
       <p className="text-center text-sm text-muted-foreground">
         Chưa có tài khoản?{' '}
-        <Link href="/dang-ky" className="font-medium text-[#315c48] hover:underline">Đăng ký</Link>
+        <Link href="/dang-ky" className="font-medium text-primary hover:underline">Đăng ký</Link>
       </p>
     </form>
   )
