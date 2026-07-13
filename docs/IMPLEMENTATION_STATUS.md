@@ -64,17 +64,18 @@ Theo `docs/plans/GIAI_DOAN_0.md`, các bước còn lại nên làm theo thứ t
 - [x] Thay trang chủ mặc định bằng landing tối giản tiếng Việt.
 - [x] Cài Vitest và tạo `lib/format.ts` + `lib/format.test.ts`.
 - [x] Chạy `npm test` để xác nhận format tiền/ngày.
-- [ ] Cài shadcn/ui và thêm component nền (`button`, `card`, `input`).
-- [ ] Cài `@supabase/supabase-js` và `@supabase/ssr`.
-- [ ] Tạo 3 Supabase client: browser, server, admin.
-- [ ] Thêm `import "server-only"` trong admin client.
-- [ ] Tạo `.env.local` từ `.env.example`.
-- [ ] Kiểm tra kết nối Supabase từ server.
-- [ ] Tạo middleware khung refresh session.
+- [x] Cài shadcn/ui và thêm component nền (`button`, `card`, `input`).
+- [x] Cài `@supabase/supabase-js` và `@supabase/ssr`.
+- [x] Tạo 3 Supabase client: browser, server, admin.
+- [x] Thêm `import "server-only"` trong admin client.
+- [x] Tạo `.env.local` từ `.env.example` (đang là PLACEHOLDER — cần điền giá trị thật).
+- [ ] Kiểm tra kết nối Supabase từ server. ⚠️ **Chờ credential Supabase thật.**
+- [x] Tạo middleware khung refresh session.
 - [x] Chạy `npm run lint`.
 - [x] Chạy `npm run build`.
 - [x] Quét `.next/static/**/*.js` bảo đảm không có `service_role`.
-- [ ] Cập nhật tài liệu lệnh thường dùng.
+- [x] Cập nhật tài liệu lệnh thường dùng.
+- [ ] Deploy Vercel preview. ⚠️ **Cần tài khoản/dự án Vercel.**
 
 ---
 
