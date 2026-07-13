@@ -1,11 +1,14 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import type { User } from '@supabase/supabase-js'
 
 /**
- * Làm mới phiên Supabase ở middleware và đồng bộ cookie.
- * (Chặn route theo vai trò /admin và gating thuê bao sẽ bổ sung ở Giai đoạn 1 & 9.)
+ * Làm mới phiên Supabase ở proxy và đồng bộ cookie. Trả về response + user (nếu có)
+ * để proxy quyết định chuyển hướng theo phiên/vai trò.
  */
-export async function updateSession(request: NextRequest) {
+export async function updateSession(
+  request: NextRequest,
+): Promise<{ response: NextResponse; user: User | null }> {
   let response = NextResponse.next({ request })
 
   const supabase = createServerClient(
@@ -15,9 +18,7 @@ export async function updateSession(request: NextRequest) {
       cookies: {
         getAll: () => request.cookies.getAll(),
         setAll: (cookiesToSet) => {
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value),
-          )
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
           response = NextResponse.next({ request })
           cookiesToSet.forEach(({ name, value, options }) =>
             response.cookies.set(name, value, options),
@@ -27,12 +28,13 @@ export async function updateSession(request: NextRequest) {
     },
   )
 
-  // Làm mới phiên (nếu cấu hình Supabase chưa sẵn sàng thì bỏ qua, không làm hỏng request).
+  let user: User | null = null
   try {
-    await supabase.auth.getUser()
+    const { data } = await supabase.auth.getUser()
+    user = data.user
   } catch {
-    // Bỏ qua — sẽ hoạt động khi biến môi trường Supabase thật được điền.
+    // Bỏ qua nếu Supabase chưa sẵn sàng — coi như chưa đăng nhập.
   }
 
-  return response
+  return { response, user }
 }
