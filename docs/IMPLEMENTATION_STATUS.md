@@ -1,8 +1,8 @@
 # IMPLEMENTATION STATUS — Trạng thái triển khai
 
 **Ngày cập nhật:** 2026-07-13
-**Giai đoạn hiện tại:** Giai đoạn 2 — Quản lý học sinh (đang chốt DoD)
-**Mục tiêu gần nhất:** áp migration `0004_students.sql` lên Supabase DB rồi chạy test cách ly RLS → đóng Giai đoạn 2.
+**Giai đoạn hiện tại:** Giai đoạn 3 — Bài học & Tài liệu · **3A (Bài học) đã xong**, tiếp theo **3B (Tài liệu + Storage)**
+**Nhánh làm việc:** `feat/giao-dien-dscity` (kèm đợt nâng cấp giao diện DSCITY + dark mode)
 
 ---
 
@@ -10,52 +10,52 @@
 
 | GĐ | Tên | Trạng thái | Ghi chú |
 |---|---|---|---|
-| 0 | Nền móng dự án | ✅ Xong | Next.js + TS + Tailwind + shadcn/ui, 3 Supabase client, middleware (`proxy.ts`), format `vi-VN`, `.env.local` có credential thật |
-| 1 | Xác thực & Hồ sơ | ✅ Xong | Đăng ký/đăng nhập/quên MK, trigger tạo profiles+user_settings+subscriptions, bảo vệ route, gating chỉ-đọc; RLS GĐ1 đã vá 2 lỗ hổng và đạt |
-| 2 | Quản lý học sinh | 🟡 Gần xong | Code + test đơn vị + phân trang xong; **chờ áp migration + test RLS** |
-| 3–10 | (Bài học → Phát hành) | ⏳ Chưa | Theo `docs/ROADMAP.md` |
+| 0 | Nền móng dự án | ✅ Xong | Next.js + TS + Tailwind + shadcn/ui, 3 Supabase client, middleware (`proxy.ts`), format `vi-VN` |
+| 1 | Xác thực & Hồ sơ | ✅ Xong | Đăng ký/đăng nhập/quên MK, trigger tạo profiles+user_settings+subscriptions, bảo vệ route, gating chỉ-đọc; RLS GĐ1 đạt |
+| 2 | Quản lý học sinh | ✅ Xong | CRUD + phân trang + test đơn vị; migration `0004` đã áp; **cách ly RLS students PASS** |
+| 3A | Bài học (`lessons`) | ✅ Xong | CRUD + Markdown (sanitize) + phân trang; migration `0005` đã áp; **cách ly RLS lessons PASS** |
+| 3B | Tài liệu + Storage | ⏳ Kế tiếp | `documents` + bucket riêng tư + signed URL + đính kèm (spec/plan chưa nở) |
+| 4–10 | (Lịch → Phát hành) | ⏳ Chưa | Theo `docs/ROADMAP.md` |
 
 ---
 
-## 2. Chi tiết Giai đoạn 2 (đối chiếu `docs/plans/GIAI_DOAN_2.md`)
+## 2. Chi tiết Giai đoạn 3A (đối chiếu `docs/superpowers/plans/2026-07-13-3a-bai-hoc.md`)
 
 | Hạng mục | Trạng thái | Ghi chú |
 |---|---|---|
-| Migration `0004_students.sql` (bảng + RLS 4 policy + 3 index + trigger updated_at) | ✅ Viết & commit | **Chưa áp lên DB** |
-| Validator Zod `lib/validators/student.ts` | ✅ Xong | full_name bắt buộc, fee ≥ 0 số nguyên, enum status/feeType |
-| Test đơn vị validator `lib/validators/student.test.ts` | ✅ Xong | 6 test PASS (thêm ngày 2026-07-13) |
-| Server actions `saveStudent`/`archiveStudentAction` | ✅ Xong | Gate `requireWritable`, không nhận `user_id` từ client (DB default `auth.uid()`) |
-| Queries `listStudents`/`getStudent` | ✅ Xong | **Đã thêm phân trang** (`range`, `count`, `STUDENTS_PAGE_SIZE=20`) |
-| UI danh sách / form thêm-sửa / chi tiết / lưu trữ | ✅ Xong | Responsive; danh sách có điều hướng Trước/Sau |
-| Script test cách ly RLS `scripts/test-rls-students.mjs` | ✅ Viết xong | Chạy: `node --env-file=.env.local scripts/test-rls-students.mjs` |
-| **Áp migration lên Supabase DB** | ❌ **Blocker** | Cần `SUPABASE_DB_URL` hợp lệ trong `.env.local` (host+mật khẩu DB thật) |
-| **Chạy test cách ly RLS đạt** | ⏳ Chờ | Phụ thuộc bước áp migration |
+| Migration `0005_lessons.sql` (bảng + RLS 4 policy + 2 index + trigger + CHECK status) | ✅ Áp lên DB | |
+| Validator Zod `lib/validators/lesson.ts` + test | ✅ Xong | 3 test PASS |
+| Queries `listLessons`/`getLesson` | ✅ Xong | Phân trang (`range`+`count`, `LESSONS_PAGE_SIZE=20`), sắp theo `updated_at` |
+| Actions `saveLesson`/`archiveLessonAction` | ✅ Xong | Gate `requireWritable`, không nhận `user_id` từ client |
+| Component `Markdown` (react-markdown + remark-gfm + rehype-sanitize) | ✅ Xong | Sanitize HTML nguy hiểm |
+| UI danh sách / form thêm-sửa / chi tiết + nav "Bài học" | ✅ Xong | Token semantic + responsive bảng/card |
+| Script test cách ly RLS `scripts/test-rls-lessons.mjs` | ✅ PASS | A/B/admin, đọc-ghi chéo, giả mạo `user_id` 403, admin không đọc |
 
 ---
 
-## 3. Blocker duy nhất hiện tại
-
-- `scripts/run-migration.mjs` cần biến `SUPABASE_DB_URL` (chuỗi kết nối Postgres kèm mật khẩu DB).
-- Giá trị hiện tại trong `.env.local` **còn placeholder** (`<host>` / `<...>`) → `pg` báo *Invalid URL*.
-- Host DB đúng (suy từ project ref): `db.cvxxkxobtnqomesnfzqk.supabase.co:5432`.
-- Cần người dùng dán mật khẩu DB thật (Supabase → Settings → Database). Nếu mạng chỉ IPv4 → dùng chuỗi **Session pooler**.
-
-**Sau khi có DB URL hợp lệ, còn đúng 2 lệnh để đóng GĐ2:**
-```bash
-node --env-file=.env.local scripts/run-migration.mjs supabase/migrations/0004_students.sql
-node --env-file=.env.local scripts/test-rls-students.mjs
-```
-
----
-
-## 4. Kiểm thử / chất lượng gần nhất (2026-07-13)
+## 3. Kiểm thử / chất lượng gần nhất (2026-07-13)
 
 | Lệnh | Kết quả |
 |---|---|
-| `npm test` | ✅ 12 test PASS (format 6 + student validator 6) |
-| `npm run lint` | ✅ 0 error (6 warning trong `scripts/*.mjs`, vô hại) |
-| `npm run build` | ✅ Thành công, TypeScript OK, 10 route |
-| Quét `service_role` trong bundle client | ✅ Sạch (GĐ0) |
+| `npm test` | ✅ 15 test PASS (format 6 + student 6 + lesson 3) |
+| `npm run lint` | ✅ 0 error (10 warning trong `scripts/*.mjs`, vô hại) |
+| `npm run build` | ✅ Thành công; 14 route gồm `/bai-hoc`, `/bai-hoc/moi`, `/bai-hoc/[id]`, `/bai-hoc/[id]/sua` |
+| Cách ly RLS `students` | ✅ PASS |
+| Cách ly RLS `lessons` | ✅ PASS |
+
+---
+
+## 4. Migration đã áp lên DB
+
+| File | Nội dung |
+|---|---|
+| `0001_accounts_subscriptions.sql` | enums, plans, subscriptions… (GĐ1) |
+| `0002_handle_new_user.sql` | trigger tạo profiles/user_settings/subscriptions |
+| `0003_profiles_column_guard.sql` | vá cột profiles |
+| `0004_students.sql` | bảng students + RLS |
+| `0005_lessons.sql` | bảng lessons + RLS |
+
+Áp bằng: `node --env-file=.env.local scripts/run-migration.mjs <file.sql>` (cần `SUPABASE_DB_URL` trong `.env.local`).
 
 ---
 
@@ -68,8 +68,9 @@ npm run start
 npm run lint
 npm test
 npm run test:watch
-# Áp một migration lên DB (cần SUPABASE_DB_URL):
-node --env-file=.env.local scripts/run-migration.mjs <file.sql>
+node --env-file=.env.local scripts/run-migration.mjs <file.sql>   # áp migration
+node --env-file=.env.local scripts/test-rls-students.mjs           # test cách ly
+node --env-file=.env.local scripts/test-rls-lessons.mjs
 ```
 
 ---
@@ -84,6 +85,7 @@ node --env-file=.env.local scripts/run-migration.mjs <file.sql>
 
 ---
 
-## 7. Bước kế tiếp sau GĐ2
+## 7. Bước kế tiếp
 
-Giai đoạn 3 — Bài học & Tài liệu (`lessons`, `documents` + Storage bucket riêng tư theo tiền tố `user_id/`). Lặp lại pattern 6-task của GĐ2.
+1. **(Tùy chọn)** Tạo skill dự án "lát cắt dọc CRUD+RLS" (`writing-skills`) — đã có 2 lần áp dụng (students + lessons).
+2. **Giai đoạn 3B** — Tài liệu + Supabase Storage: nở spec/plan → migration `0006_documents.sql` + `0007_storage_documents.sql` (bucket riêng tư, signed URL, đính kèm vào bài học/học sinh).
