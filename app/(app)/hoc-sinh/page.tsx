@@ -13,17 +13,31 @@ const inputClass =
 export default async function HocSinhPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; status?: string }>
+  searchParams: Promise<{ q?: string; status?: string; page?: string }>
 }) {
   const sp = await searchParams
-  const students = await listStudents({ search: sp.q, status: sp.status })
+  const page = Math.max(1, Number(sp.page) || 1)
+  const { rows: students, total, pageSize } = await listStudents({
+    search: sp.q,
+    status: sp.status,
+    page,
+  })
+  const totalPages = Math.max(1, Math.ceil(total / pageSize))
+  const buildHref = (p: number) => {
+    const params = new URLSearchParams()
+    if (sp.q) params.set('q', sp.q)
+    if (sp.status) params.set('status', sp.status)
+    if (p > 1) params.set('page', String(p))
+    const qs = params.toString()
+    return qs ? `/hoc-sinh?${qs}` : '/hoc-sinh'
+  }
 
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-[#18211d]">Học sinh</h1>
-          <p className="mt-1 text-sm text-muted-foreground">{students.length} học sinh</p>
+          <p className="mt-1 text-sm text-muted-foreground">{total} học sinh</p>
         </div>
         <Link href="/hoc-sinh/moi" className={buttonVariants({ className: 'bg-[#315c48] text-white hover:bg-[#244637]' })}>
           + Thêm học sinh
@@ -80,6 +94,30 @@ export default async function HocSinhPage({
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between gap-4 text-sm">
+          <span className="text-muted-foreground">
+            Trang {page}/{totalPages}
+          </span>
+          <div className="flex items-center gap-2">
+            {page > 1 ? (
+              <Link href={buildHref(page - 1)} className={buttonVariants({ variant: 'outline' })}>
+                ← Trước
+              </Link>
+            ) : (
+              <Button variant="outline" disabled>← Trước</Button>
+            )}
+            {page < totalPages ? (
+              <Link href={buildHref(page + 1)} className={buttonVariants({ variant: 'outline' })}>
+                Sau →
+              </Link>
+            ) : (
+              <Button variant="outline" disabled>Sau →</Button>
+            )}
+          </div>
         </div>
       )}
     </div>
