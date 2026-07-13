@@ -2,11 +2,12 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Users } from 'lucide-react'
+import { LayoutDashboard, Users, BookOpen } from 'lucide-react'
 
 const NAV_ITEMS = [
   { href: '/tong-quan', label: 'Tổng quan', icon: LayoutDashboard },
   { href: '/hoc-sinh', label: 'Học sinh', icon: Users },
+  { href: '/bai-hoc', label: 'Bài học', icon: BookOpen },
 ]
 
 function useIsActive() {
