@@ -2,7 +2,7 @@
 
 **Ngày cập nhật:** 2026-07-13  
 **Giai đoạn hiện tại:** Giai đoạn 0 — Nền móng dự án  
-**Mục tiêu gần nhất:** hoàn tất khung Next.js, định dạng tiếng Việt, Supabase client, middleware khung, kiểm tra build.
+**Mục tiêu gần nhất:** hoàn tất shadcn/ui, Supabase client, middleware khung và biến môi trường local.
 
 ---
 
@@ -15,18 +15,22 @@
 | TypeScript | ✅ Có | Đã có `tsconfig.json`, `next-env.d.ts` |
 | Tailwind CSS | ✅ Có | Đang dùng Tailwind CSS v4 qua `@import "tailwindcss"` trong `app/globals.css` |
 | App đang chạy local | ✅ Có | Người dùng xác nhận đang chạy Next |
-| Trang chủ tiếng Việt | ⏳ Chưa | `app/page.tsx` vẫn là trang mặc định của Next |
-| `<html lang="vi">` | ⏳ Chưa | `app/layout.tsx` hiện vẫn là `lang="en"` |
-| Metadata tiếng Việt | ⏳ Chưa | Metadata hiện vẫn là `Create Next App` |
+| Trang chủ tiếng Việt | ✅ Có | `app/page.tsx` đã thay trang mặc định bằng landing tối giản |
+| `<html lang="vi">` | ✅ Có | `app/layout.tsx` đã dùng `lang="vi"` |
+| Metadata tiếng Việt | ✅ Có | Metadata đã đổi sang EduFlow |
 | shadcn/ui | ⏳ Chưa | Chưa có `components.json`, `components/ui/*` |
-| Tiện ích định dạng `vi-VN` | ⏳ Chưa | Chưa có `lib/format.ts` và test |
-| Vitest | ⏳ Chưa | Chưa có script `test` |
+| Tiện ích định dạng `vi-VN` | ✅ Có | Đã có `lib/format.ts` |
+| Vitest | ✅ Có | Đã có `vitest.config.ts`, `npm test`, `npm run test:watch` |
+| Unit test format | ✅ Pass | `npm test` pass 6 test |
 | Supabase dependencies | ⏳ Chưa | Chưa có `@supabase/supabase-js`, `@supabase/ssr` |
 | Supabase clients | ⏳ Chưa | Chưa có `lib/supabase/client.ts`, `server.ts`, `admin.ts` |
 | `.env.local` | ⏳ Chưa | `.env.example` đã có; `.env.local` chưa có và đang được `.gitignore` chặn |
 | Middleware refresh session | ⏳ Chưa | Chưa có `middleware.ts` |
 | Supabase CLI | ⚠️ Chưa | Lệnh `supabase` chưa có trong PATH |
 | Vercel CLI | ✅ Có | `vercel` đã có |
+| Lint | ✅ Pass | `npm run lint` pass |
+| Build | ✅ Pass | `npm run build` pass |
+| Quét `service_role` trong bundle | ✅ Pass | Không thấy chuỗi `service_role` trong `.next/static/**/*.js` |
 
 ---
 
@@ -56,10 +60,10 @@
 Theo `docs/plans/GIAI_DOAN_0.md`, các bước còn lại nên làm theo thứ tự:
 
 - [x] Khởi tạo Next.js App Router + TypeScript + Tailwind.
-- [ ] Đổi `app/layout.tsx` sang `lang="vi"` và metadata tiếng Việt.
-- [ ] Thay trang chủ mặc định bằng landing tối giản tiếng Việt.
-- [ ] Cài Vitest và tạo `lib/format.ts` + `lib/format.test.ts`.
-- [ ] Chạy `npm test` để xác nhận format tiền/ngày.
+- [x] Đổi `app/layout.tsx` sang `lang="vi"` và metadata tiếng Việt.
+- [x] Thay trang chủ mặc định bằng landing tối giản tiếng Việt.
+- [x] Cài Vitest và tạo `lib/format.ts` + `lib/format.test.ts`.
+- [x] Chạy `npm test` để xác nhận format tiền/ngày.
 - [ ] Cài shadcn/ui và thêm component nền (`button`, `card`, `input`).
 - [ ] Cài `@supabase/supabase-js` và `@supabase/ssr`.
 - [ ] Tạo 3 Supabase client: browser, server, admin.
@@ -67,9 +71,9 @@ Theo `docs/plans/GIAI_DOAN_0.md`, các bước còn lại nên làm theo thứ t
 - [ ] Tạo `.env.local` từ `.env.example`.
 - [ ] Kiểm tra kết nối Supabase từ server.
 - [ ] Tạo middleware khung refresh session.
-- [ ] Chạy `npm run lint`.
-- [ ] Chạy `npm run build`.
-- [ ] Quét `.next/static/**/*.js` bảo đảm không có `service_role`.
+- [x] Chạy `npm run lint`.
+- [x] Chạy `npm run build`.
+- [x] Quét `.next/static/**/*.js` bảo đảm không có `service_role`.
 - [ ] Cập nhật tài liệu lệnh thường dùng.
 
 ---
@@ -81,11 +85,6 @@ npm run dev
 npm run build
 npm run start
 npm run lint
-```
-
-Sau khi cài Vitest sẽ thêm:
-
-```bash
 npm test
 npm run test:watch
 ```
@@ -104,8 +103,8 @@ npm run test:watch
 
 ## 6. Bước đề xuất ngay sau file này
 
-1. Sửa layout/trang chủ sang tiếng Việt.
-2. Thêm format util + test.
-3. Cài shadcn/ui.
-4. Thêm Supabase clients.
-5. Chạy `npm run lint` và `npm run build`.
+1. Cài shadcn/ui.
+2. Cài Supabase packages.
+3. Thêm Supabase clients.
+4. Tạo `.env.local` từ `.env.example`.
+5. Thêm middleware refresh session.

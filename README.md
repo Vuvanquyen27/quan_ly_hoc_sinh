@@ -99,7 +99,7 @@ Dự án hiện đã bắt đầu Giai đoạn 0. Khi tiếp tục triển khai:
 2. Làm tiếp theo [`docs/plans/GIAI_DOAN_0.md`](./docs/plans/GIAI_DOAN_0.md), sau đó mới sang Giai đoạn 1.
 3. Tuân thủ tuyệt đối các ràng buộc bảo mật trong [`CLAUDE.md`](./CLAUDE.md) và [`docs/PERMISSIONS.md`](./docs/PERMISSIONS.md).
 
-Lệnh hiện có: `npm run dev`, `npm run build`, `npm run start`, `npm run lint`. Lệnh test và migration sẽ được bổ sung khi cài Vitest/Supabase CLI.
+Lệnh hiện có: `npm run dev`, `npm run build`, `npm run start`, `npm run lint`, `npm test`. Lệnh migration sẽ được bổ sung khi cài Supabase CLI.
 
 ---
 

@@ -102,9 +102,11 @@ npm run dev      # chạy Next.js local
 npm run build    # build production
 npm run start    # chạy bản production sau build
 npm run lint     # kiểm tra ESLint
+npm test         # chạy unit test bằng Vitest
+npm run test:watch
 ```
 
-Sẽ bổ sung `npm test` sau khi cài Vitest ở Giai đoạn 0. Sẽ bổ sung lệnh Supabase migration sau khi cài Supabase CLI và tạo `supabase/migrations/`.
+Sẽ bổ sung lệnh Supabase migration sau khi cài Supabase CLI và tạo `supabase/migrations/`.
 
 ---
 
