@@ -20,12 +20,10 @@ Bối cảnh: **Việt Nam**. Giao diện **tiếng Việt**, tiền tệ **VND*
 
 | Mục | Trạng thái |
 |---|---|
-| Giai đoạn | **Lập kế hoạch / Tài liệu** — CHƯA lập trình ứng dụng |
-| Đã có | Bộ tài liệu trong `docs/` + `README.md` + tệp này |
-| Chưa có | Mã nguồn, cấu hình Next.js, kết nối Supabase, CSDL thực tế |
-| Việc kế tiếp | Xem `docs/ROADMAP.md` — bắt đầu từ Giai đoạn 0 (khởi tạo dự án) |
-
-> ⚠️ Khi bắt đầu viết code, **cập nhật lại mục này** và bổ sung §7 (Lệnh thường dùng).
+| Giai đoạn | **Đang triển khai Giai đoạn 0 — Nền móng dự án** |
+| Đã có | Bộ tài liệu trong `docs/`, `README.md`, tệp này, Git repo, scaffold Next.js App Router + TypeScript + Tailwind CSS v4 |
+| Chưa có | shadcn/ui, tiện ích định dạng/test, Supabase clients, `.env.local`, middleware, migrations, CSDL thực tế |
+| Việc kế tiếp | Hoàn tất checklist Giai đoạn 0 trong `docs/IMPLEMENTATION_STATUS.md` trước khi sang Giai đoạn 1 |
 
 ---
 
@@ -39,6 +37,7 @@ Bối cảnh: **Việt Nam**. Giao diện **tiếng Việt**, tiền tệ **VND*
 | [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) | Kiến trúc kỹ thuật: thư mục, route, tầng, Supabase client, middleware |
 | [`docs/ROADMAP.md`](./docs/ROADMAP.md) | Lộ trình theo giai đoạn + tiêu chí hoàn thành |
 | [`docs/plans/`](./docs/plans/) | Kế hoạch triển khai chi tiết từng giai đoạn (TDD) |
+| [`docs/IMPLEMENTATION_STATUS.md`](./docs/IMPLEMENTATION_STATUS.md) | Trạng thái triển khai thực tế + checklist việc còn lại |
 | [`README.md`](./README.md) | Giới thiệu ngắn gọn + liên kết |
 
 **Quy tắc:** Khi một quyết định trong tài liệu mâu thuẫn với code, ưu tiên làm rõ với người dùng — không tự ý lệch khỏi tài liệu mà không ghi nhận.
@@ -98,8 +97,14 @@ Chi tiết & ma trận quyền: xem [`docs/PERMISSIONS.md`](./docs/PERMISSIONS.m
 
 ## 7. Lệnh thường dùng
 
-> _Chưa có mã nguồn. Sẽ cập nhật sau khi khởi tạo dự án (Giai đoạn 0)._
-> Dự kiến: `npm run dev`, `npm run build`, `npm run lint`, và các lệnh migration Supabase.
+```bash
+npm run dev      # chạy Next.js local
+npm run build    # build production
+npm run start    # chạy bản production sau build
+npm run lint     # kiểm tra ESLint
+```
+
+Sẽ bổ sung `npm test` sau khi cài Vitest ở Giai đoạn 0. Sẽ bổ sung lệnh Supabase migration sau khi cài Supabase CLI và tạo `supabase/migrations/`.
 
 ---
 

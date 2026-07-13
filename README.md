@@ -2,7 +2,7 @@
 
 > Sản phẩm **SaaS** giúp giáo viên cá nhân (gia sư, giáo viên luyện thi, giáo viên tự do) quản lý học sinh, bài học, lịch dạy và **tài chính** trong một nơi duy nhất — dữ liệu mỗi giáo viên được **cách ly tuyệt đối**.
 
-**Trạng thái:** 🟡 Giai đoạn lập kế hoạch / tài liệu — _chưa lập trình ứng dụng._
+**Trạng thái:** 🟡 Đang triển khai **Giai đoạn 0 — Nền móng dự án**. Đã có scaffold Next.js; đang hoàn tất cấu hình nền, Supabase client, test và checklist bảo mật.
 **Tên "EduFlow" là tên tạm**, có thể thay đổi trước khi phát hành.
 
 ---
@@ -62,6 +62,7 @@ Chi tiết: [`docs/PERMISSIONS.md`](./docs/PERMISSIONS.md).
 | [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) | Kiến trúc kỹ thuật: cấu trúc thư mục, route, tầng, Supabase client, middleware |
 | [`docs/ROADMAP.md`](./docs/ROADMAP.md) | Lộ trình theo giai đoạn + tiêu chí hoàn thành |
 | [`docs/plans/`](./docs/plans/) | Kế hoạch triển khai chi tiết từng giai đoạn (TDD) |
+| [`docs/IMPLEMENTATION_STATUS.md`](./docs/IMPLEMENTATION_STATUS.md) | Trạng thái triển khai thực tế + checklist việc còn phải chuẩn bị/xây dựng |
 | [`CLAUDE.md`](./CLAUDE.md) | Ngữ cảnh cho AI trợ lý — đọc đầu mỗi phiên làm việc |
 
 ---
@@ -73,28 +74,32 @@ Chi tiết: [`docs/PERMISSIONS.md`](./docs/PERMISSIONS.md).
 ├─ README.md            ← bạn đang ở đây
 ├─ CLAUDE.md            ← ngữ cảnh cho AI (tự nạp mỗi phiên)
 ├─ .env.example        ← mẫu biến môi trường
+├─ package.json         ← lệnh Next.js hiện có
+├─ app/                 ← scaffold Next.js App Router
+├─ public/              ← asset tĩnh mặc định
 └─ docs/
    ├─ PRD.md
    ├─ PERMISSIONS.md
    ├─ DATABASE.md
    ├─ ARCHITECTURE.md
    ├─ ROADMAP.md
+   ├─ IMPLEMENTATION_STATUS.md
    └─ plans/            ← kế hoạch chi tiết từng giai đoạn (GIAI_DOAN_0…10)
 ```
 
-_(Cấu trúc mã nguồn — `app/`, `lib/`, `supabase/migrations/` — sẽ được thêm ở Giai đoạn 0 của lộ trình.)_
+_(Các thư mục `lib/`, `components/`, `server/`, `supabase/migrations/` sẽ được thêm tiếp trong Giai đoạn 0–1.)_
 
 ---
 
 ## Bắt đầu triển khai
 
-Dự án hiện ở giai đoạn tài liệu. Khi sẵn sàng lập trình:
+Dự án hiện đã bắt đầu Giai đoạn 0. Khi tiếp tục triển khai:
 
-1. Đọc [`docs/ROADMAP.md`](./docs/ROADMAP.md) và bắt đầu từ **Giai đoạn 0 — Nền móng dự án**.
-2. Với mỗi giai đoạn, tạo implementation plan chi tiết trước khi code (xem hướng dẫn trong ROADMAP).
+1. Xem [`docs/IMPLEMENTATION_STATUS.md`](./docs/IMPLEMENTATION_STATUS.md) để biết việc đã xong/chưa xong trong **Giai đoạn 0 — Nền móng dự án**.
+2. Làm tiếp theo [`docs/plans/GIAI_DOAN_0.md`](./docs/plans/GIAI_DOAN_0.md), sau đó mới sang Giai đoạn 1.
 3. Tuân thủ tuyệt đối các ràng buộc bảo mật trong [`CLAUDE.md`](./CLAUDE.md) và [`docs/PERMISSIONS.md`](./docs/PERMISSIONS.md).
 
-_Hướng dẫn cài đặt & lệnh chạy sẽ được bổ sung vào README và `CLAUDE.md §7` khi có mã nguồn._
+Lệnh hiện có: `npm run dev`, `npm run build`, `npm run start`, `npm run lint`. Lệnh test và migration sẽ được bổ sung khi cài Vitest/Supabase CLI.
 
 ---
 
