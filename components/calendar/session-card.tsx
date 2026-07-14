@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { changeSessionStatus } from '@/server/sessions/actions'
 import type { SessionRow } from '@/server/sessions/queries'
 import { STATUS_LABEL } from '@/lib/validators/session'
+import { isPastNow } from '@/lib/datetime'
 
 function timeHM(iso: string) {
   return new Intl.DateTimeFormat('vi-VN', {
@@ -12,7 +13,7 @@ function timeHM(iso: string) {
 }
 
 export function SessionCard({ session: s }: { session: SessionRow }) {
-  const overdue = s.status === 'scheduled' && new Date(s.end_time).getTime() < Date.now()
+  const overdue = s.status === 'scheduled' && isPastNow(s.end_time)
   return (
     <div className="rounded-lg border border-border bg-card p-3">
       <div className="flex items-center justify-between gap-2">

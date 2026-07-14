@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { listSessions } from '@/server/sessions/queries'
-import { rangeFor } from '@/lib/datetime'
+import { rangeFor, todayVnDate } from '@/lib/datetime'
 import { CalendarView } from '@/components/calendar/calendar-view'
 import { buttonVariants } from '@/components/ui/button'
 
@@ -23,7 +23,7 @@ export default async function LichDayPage({
 }) {
   const sp = await searchParams
   const view = (['list', 'day', 'week'].includes(sp.view ?? '') ? sp.view : 'week') as 'list' | 'day' | 'week'
-  const today = new Date(Date.now() + 7 * 3600000).toISOString().slice(0, 10) // hôm nay theo VN
+  const today = todayVnDate()
   const date = sp.date ?? today
 
   const { fromIso, toIso } = rangeFor(view, date)

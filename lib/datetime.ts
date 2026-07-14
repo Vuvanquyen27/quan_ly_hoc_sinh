@@ -31,3 +31,13 @@ export function rangeFor(
   // list: 30 ngày tới kể từ mốc
   return { fromIso: base.toISOString(), toIso: new Date(base.getTime() + 30 * DAY_MS).toISOString() }
 }
+
+/** Ngày hôm nay theo giờ VN, dạng 'YYYY-MM-DD'. */
+export function todayVnDate(): string {
+  return new Date(Date.now() + VN_OFFSET_MS).toISOString().slice(0, 10)
+}
+
+/** true nếu thời điểm UTC ISO đã ở quá khứ so với hiện tại. */
+export function isPastNow(iso: string): boolean {
+  return new Date(iso).getTime() < Date.now()
+}
