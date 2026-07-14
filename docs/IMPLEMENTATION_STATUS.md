@@ -1,8 +1,8 @@
 # IMPLEMENTATION STATUS — Trạng thái triển khai
 
 **Ngày cập nhật:** 2026-07-14
-**Giai đoạn hiện tại:** Giai đoạn 3 **đã hoàn tất** (3A Bài học + 3B Tài liệu + Storage); kế tiếp **Giai đoạn 4 — Lịch & Buổi học**
-**Nhánh làm việc:** `feat/giao-dien-dscity` (kèm đợt nâng cấp giao diện DSCITY + dark mode)
+**Giai đoạn hiện tại:** Giai đoạn 4A **đã hoàn tất** (Lịch & Buổi học — tạo/sửa/xem/đổi trạng thái); kế tiếp **Giai đoạn 4B — Điểm danh (attendance)**
+**Nhánh làm việc:** `feat/gd4-lich-buoi-hoc`
 
 ---
 
@@ -15,11 +15,12 @@
 | 2 | Quản lý học sinh | ✅ Xong | CRUD + phân trang + test đơn vị; migration `0004` đã áp; **cách ly RLS students PASS** |
 | 3A | Bài học (`lessons`) | ✅ Xong | CRUD + Markdown (sanitize) + phân trang; migration `0005` đã áp; **cách ly RLS lessons PASS** |
 | 3B | Tài liệu + Storage | ✅ Xong | migration `0006`/`0007` áp; CRUD tài liệu (file+link) + signed URL + đính kèm bài học/học sinh; **cách ly RLS documents + Storage PASS** |
-| 4–10 | (Lịch → Phát hành) | ⏳ Chưa | Theo `docs/ROADMAP.md` |
+| 4A | Lịch & Buổi học | ✅ Xong | migration `0008` áp; RLS sessions PASS; lịch Danh sách/Ngày/Tuần; tạo/sửa buổi; chuyển trạng thái scheduled→completed/cancelled |
+| 4B–10 | (Điểm danh → Phát hành) | ⏳ Chưa | Theo `docs/ROADMAP.md` |
 
 ---
 
-## 2. Chi tiết Giai đoạn 3B (đối chiếu `docs/plans/2026-07-14-3b-tai-lieu.md`)
+## 2. Chi tiết Giai đoạn 3B (đối chiếu `docs/superpowers/plans/2026-07-14-3b-tai-lieu.md`)
 
 | Hạng mục | Trạng thái | Ghi chú |
 |---|---|---|
@@ -39,7 +40,25 @@
 
 ---
 
-## 3. Chi tiết Giai đoạn 3A (đối chiếu `docs/superpowers/plans/2026-07-13-3a-bai-hoc.md`)
+## 3. Chi tiết Giai đoạn 4A (đối chiếu `docs/superpowers/plans/2026-07-14-4a-buoi-hoc.md`)
+
+| Hạng mục | Trạng thái | Ghi chú |
+|---|---|---|
+| Migration `0008_sessions.sql` (bảng + RLS 4 policy + index) | ✅ Áp lên DB | FK `student_id` → students CASCADE; status CHECK |
+| `lib/datetime.ts` + test | ✅ Xong | Hàm tiện ích thời gian `Asia/Ho_Chi_Minh`, tái sử dụng `lib/format.ts` |
+| Validator Zod `lib/validators/session.ts` + test | ✅ Xong | Validate startTime < endTime, status, format, học phí |
+| Queries `server/sessions/queries.ts` (`listSessions`/`getSession`) | ✅ Xong | Lọc theo ngày/tuần, JOIN student name |
+| Actions `server/sessions/actions.ts` (`saveSession`/`changeSessionStatus`) | ✅ Xong | Gate `requireWritable`; không nhận `user_id` từ client |
+| Nav "Lịch dạy" trong sidebar | ✅ Xong | Liên kết `/lich-day` |
+| Component `session-form.tsx` (form tạo/sửa buổi) | ✅ Xong | Chọn học sinh, giờ, hình thức, học phí tự điền từ `default_fee` |
+| Component `session-card.tsx` + `calendar-view.tsx` (lịch Danh sách/Ngày/Tuần) | ✅ Xong | Điều hướng tiến/lùi, hiển thị đúng `Asia/Ho_Chi_Minh`; gợi ý hoàn thành buổi quá giờ |
+| Trang `/lich-day` (danh sách + lịch) | ✅ Xong | Tab chế độ xem; phân trang |
+| Trang `/lich-day/moi` & `/lich-day/[id]/sua` | ✅ Xong | Dùng chung form; sửa có nút đổi trạng thái |
+| Script test cách ly RLS `scripts/test-rls-sessions.mjs` | ✅ PASS | A/B/admin; đọc-ghi chéo; giả mạo `user_id` 403; admin không đọc |
+
+---
+
+## 4. Chi tiết Giai đoạn 3A (đối chiếu `docs/superpowers/plans/2026-07-13-3a-bai-hoc.md`)
 
 | Hạng mục | Trạng thái | Ghi chú |
 |---|---|---|
@@ -53,20 +72,21 @@
 
 ---
 
-## 4. Kiểm thử / chất lượng gần nhất (2026-07-14)
+## 5. Kiểm thử / chất lượng gần nhất (2026-07-14, sau GĐ4A)
 
 | Lệnh | Kết quả |
 |---|---|
-| `npm test` | ✅ 20 test PASS (format 6 + student 6 + lesson 3 + document 5) — 4 file test |
-| `npm run lint` | ✅ 0 error (18 warning trong `scripts/*.mjs`, vô hại, pre-existing) |
-| `npm run build` | ✅ Thành công; 17 route gồm `/tai-lieu`, `/tai-lieu/moi`, `/tai-lieu/[id]/sua`, `/bai-hoc`, `/hoc-sinh`… |
+| `npm test` | ✅ 29 test PASS (format 6 + student 6 + lesson 3 + document 5 + datetime + session) — 6 file test |
+| `npm run lint` | ✅ 0 error (23 warning trong `scripts/*.mjs` và `server/sessions/queries.ts`, vô hại, pre-existing) |
+| `npm run build` | ✅ Thành công; 20 route gồm `/lich-day`, `/lich-day/moi`, `/lich-day/[id]/sua`, `/tai-lieu`, `/bai-hoc`, `/hoc-sinh`… |
 | Cách ly RLS `students` | ✅ PASS |
 | Cách ly RLS `lessons` | ✅ PASS |
-| Cách ly RLS+Storage `documents` | ✅ PASS (10 kiểm tra: đọc-ghi chéo, giả mạo user_id 403, upload/đọc tệp cách ly) |
+| Cách ly RLS+Storage `documents` | ✅ PASS |
+| Cách ly RLS `sessions` | ✅ PASS (6 kiểm tra: tạo, đọc chính, đọc-chéo bị chặn, giả mạo user_id 403, admin không đọc) |
 
 ---
 
-## 5. Migration đã áp lên DB
+## 6. Migration đã áp lên DB
 
 | File | Nội dung |
 |---|---|
@@ -77,12 +97,13 @@
 | `0005_lessons.sql` | bảng lessons + RLS |
 | `0006_documents.sql` | bảng documents + RLS 4 policy + 2 index; FK `lesson_id`/`student_id` SET NULL khi xóa |
 | `0007_storage_documents.sql` | bucket `documents` riêng tư + Storage policy theo tiền tố `user_id/` |
+| `0008_sessions.sql` | bảng `sessions` + RLS 4 policy + index; FK `student_id` → students |
 
 Áp bằng: `node --env-file=.env.local scripts/run-migration.mjs <file.sql>` (cần `SUPABASE_DB_URL` trong `.env.local`).
 
 ---
 
-## 6. Lệnh hiện có
+## 7. Lệnh hiện có
 
 ```bash
 npm run dev
@@ -95,11 +116,12 @@ node --env-file=.env.local scripts/run-migration.mjs <file.sql>      # áp migra
 node --env-file=.env.local scripts/test-rls-students.mjs             # test cách ly students
 node --env-file=.env.local scripts/test-rls-lessons.mjs              # test cách ly lessons
 node --env-file=.env.local scripts/test-rls-documents.mjs            # test cách ly documents + Storage
+node --env-file=.env.local scripts/test-rls-sessions.mjs             # test cách ly sessions
 ```
 
 ---
 
-## 7. Nguyên tắc không được lệch
+## 8. Nguyên tắc không được lệch
 
 - Không đưa `SUPABASE_SERVICE_ROLE_KEY` vào client hoặc biến `NEXT_PUBLIC_*`.
 - Không tạo bảng dữ liệu khách nếu chưa có `user_id` + RLS.
@@ -109,7 +131,7 @@ node --env-file=.env.local scripts/test-rls-documents.mjs            # test các
 
 ---
 
-## 8. Bước kế tiếp
+## 9. Bước kế tiếp
 
-1. **(Tùy chọn)** Tạo/cập nhật skill dự án "lát cắt dọc CRUD+RLS" (`writing-skills`) — đã áp dụng 3 lần (students, lessons, documents).
-2. **Giai đoạn 4** — Lịch & Buổi học: spec/plan → migration `sessions` + `schedules` + RLS + giao diện lịch dạy + điểm danh.
+1. **(Tùy chọn)** Tạo/cập nhật skill dự án "lát cắt dọc CRUD+RLS" (`writing-skills`) — đã áp dụng 4 lần (students, lessons, documents, sessions).
+2. **Giai đoạn 4B** — Điểm danh (attendance): spec/plan → migration bảng `attendance` + RLS + giao diện điểm danh từng buổi học.
