@@ -38,6 +38,7 @@ try {
   ;[A, B, C] = [await mkUser(), await mkUser(), await mkUser(true)]
   if (!A.id || !B.id || !C.id) { bad('Không tạo được user'); throw new Error('setup') }
   const [aT, bT, cT] = [await token(A), await token(B), await token(C)]
+  if (!aT || !bT || !cT) { bad('Không lấy được token đăng nhập'); throw new Error('setup') }
   ok('Đã tạo A, B, C(admin) và đăng nhập')
 
   // A tạo 1 học sinh (vì sessions.student_id NOT NULL)
