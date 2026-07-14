@@ -2,10 +2,12 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getStudent } from '@/server/students/queries'
+import { listDocumentsForStudent } from '@/server/documents/queries'
 import { archiveStudentAction } from '@/server/students/actions'
 import { STATUS_LABEL, FEE_TYPE_LABEL } from '@/lib/validators/student'
 import { formatVND, formatDate } from '@/lib/format'
 import { Button, buttonVariants } from '@/components/ui/button'
+import { DocumentList } from '@/components/documents/document-list'
 
 export const metadata: Metadata = { title: 'Chi tiết học sinh — EduFlow' }
 
@@ -26,6 +28,8 @@ export default async function ChiTietHocSinhPage({
   const { id } = await params
   const s = await getStudent(id)
   if (!s) notFound()
+
+  const docs = await listDocumentsForStudent(id)
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -59,9 +63,15 @@ export default async function ChiTietHocSinhPage({
         <Row label="Ghi chú" value={s.notes ?? '—'} />
       </div>
 
-      <div className="rounded-2xl border border-dashed border-border bg-card p-6 text-sm text-muted-foreground">
-        Lịch sử buổi học, công nợ và tài liệu của học sinh sẽ hiển thị ở đây trong các giai đoạn tiếp theo.
-      </div>
+      <section className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-foreground">Tài liệu liên quan</h2>
+          <Link href={`/tai-lieu/moi?studentId=${id}`} className="text-sm text-primary hover:underline">
+            + Đính kèm
+          </Link>
+        </div>
+        <DocumentList rows={docs} />
+      </section>
     </div>
   )
 }
