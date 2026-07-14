@@ -39,12 +39,14 @@ export async function createDocumentSignedUrl(
   expiresIn = 60,
 ): Promise<string | null> {
   const supabase = await createServerSupabase()
-  const { data } = await supabase.storage.from(BUCKET).createSignedUrl(storagePath, expiresIn)
+  const { data, error } = await supabase.storage.from(BUCKET).createSignedUrl(storagePath, expiresIn)
+  if (error) console.error('createDocumentSignedUrl lỗi:', storagePath, error.message)
   return data?.signedUrl ?? null
 }
 
 /** Gỡ object khỏi Storage (dùng khi xóa tài liệu). */
 export async function removeDocumentFile(storagePath: string): Promise<void> {
   const supabase = await createServerSupabase()
-  await supabase.storage.from(BUCKET).remove([storagePath])
+  const { error } = await supabase.storage.from(BUCKET).remove([storagePath])
+  if (error) console.error('removeDocumentFile lỗi:', storagePath, error.message)
 }

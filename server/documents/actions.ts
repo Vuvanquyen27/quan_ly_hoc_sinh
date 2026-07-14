@@ -81,8 +81,17 @@ export async function saveDocument(
   }
 
   if (id) {
+    let oldPath: string | null = null
+    if (fileMeta) {
+      const { data: existing } = await supabase
+        .from('documents').select('storage_path').eq('id', id).maybeSingle()
+      oldPath = (existing?.storage_path as string | null) ?? null
+    }
     const { error } = await supabase.from('documents').update(row).eq('id', id)
     if (error) return { error: 'Không cập nhật được tài liệu.' }
+    if (fileMeta && oldPath && oldPath !== fileMeta.storagePath) {
+      await removeDocumentFile(oldPath)
+    }
   } else {
     if (d.type === 'file' && !fileMeta) return { error: 'Vui lòng chọn tệp để tải lên.' }
     // Không truyền user_id — CSDL đặt mặc định auth.uid().
