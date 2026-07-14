@@ -5,9 +5,11 @@ import { getStudent } from '@/server/students/queries'
 import { listDocumentsForStudent } from '@/server/documents/queries'
 import { archiveStudentAction } from '@/server/students/actions'
 import { STATUS_LABEL, FEE_TYPE_LABEL } from '@/lib/validators/student'
-import { formatVND, formatDate } from '@/lib/format'
+import { formatVND, formatDate, formatDateTime } from '@/lib/format'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { DocumentList } from '@/components/documents/document-list'
+import { listAttendanceForStudent } from '@/server/attendance/queries'
+import { ATTENDANCE_STATUS_LABEL } from '@/lib/validators/attendance'
 
 export const metadata: Metadata = { title: 'Chi tiết học sinh — EduFlow' }
 
@@ -30,6 +32,7 @@ export default async function ChiTietHocSinhPage({
   if (!s) notFound()
 
   const docs = await listDocumentsForStudent(id)
+  const history = await listAttendanceForStudent(id)
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -62,6 +65,35 @@ export default async function ChiTietHocSinhPage({
         <Row label="Học phí" value={`${formatVND(s.default_fee)} · ${FEE_TYPE_LABEL[s.fee_type] ?? s.fee_type}`} />
         <Row label="Ghi chú" value={s.notes ?? '—'} />
       </div>
+
+      <section className="space-y-3">
+        <h2 className="text-lg font-semibold text-foreground">Lịch sử buổi học &amp; điểm danh</h2>
+        {history.length === 0 ? (
+          <p className="rounded-2xl border border-border bg-card p-6 text-sm text-muted-foreground">
+            Chưa có buổi học nào được điểm danh.
+          </p>
+        ) : (
+          <ul className="space-y-2">
+            {history.map((h) => (
+              <li key={h.id} className="rounded-xl border border-border bg-card p-4">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="text-sm font-medium text-foreground">
+                    {h.session_start ? formatDateTime(h.session_start) : '—'}
+                    {h.session_title ? ` · ${h.session_title}` : ''}
+                  </span>
+                  <span className="rounded-md bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground">
+                    {ATTENDANCE_STATUS_LABEL[h.status] ?? h.status}
+                  </span>
+                </div>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Bài tập: {h.homework_done === true ? 'Đã làm' : h.homework_done === false ? 'Chưa làm' : '—'}
+                  {h.note ? ` · ${h.note}` : ''}
+                </p>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
 
       <section className="space-y-3">
         <div className="flex items-center justify-between">

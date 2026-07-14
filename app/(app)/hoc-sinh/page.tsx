@@ -1,44 +1,30 @@
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
 import Link from 'next/link'
 import { listStudents } from '@/server/students/queries'
 import { STATUS_LABEL, STUDENT_STATUSES } from '@/lib/validators/student'
 import { formatVND } from '@/lib/format'
 import { Button, buttonVariants } from '@/components/ui/button'
+import { ListResultsSkeleton } from '@/components/ui/skeletons'
 
 export const metadata: Metadata = { title: 'Học sinh — EduFlow' }
 
 const inputClass =
   'h-9 rounded-md border border-input bg-card px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring/40'
 
+type StudentSearchParams = { q?: string; status?: string; page?: string }
+
 export default async function HocSinhPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; status?: string; page?: string }>
+  searchParams: Promise<StudentSearchParams>
 }) {
   const sp = await searchParams
-  const page = Math.max(1, Number(sp.page) || 1)
-  const { rows: students, total, pageSize } = await listStudents({
-    search: sp.q,
-    status: sp.status,
-    page,
-  })
-  const totalPages = Math.max(1, Math.ceil(total / pageSize))
-  const buildHref = (p: number) => {
-    const params = new URLSearchParams()
-    if (sp.q) params.set('q', sp.q)
-    if (sp.status) params.set('status', sp.status)
-    if (p > 1) params.set('page', String(p))
-    const qs = params.toString()
-    return qs ? `/hoc-sinh?${qs}` : '/hoc-sinh'
-  }
 
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Học sinh</h1>
-          <p className="mt-1 text-sm text-muted-foreground">{total} học sinh</p>
-        </div>
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Học sinh</h1>
         <Link
           href="/hoc-sinh/moi"
           className={buttonVariants({ variant: 'success', className: 'w-full sm:w-auto' })}
@@ -62,6 +48,35 @@ export default async function HocSinhPage({
         </select>
         <Button type="submit" variant="outline">Lọc</Button>
       </form>
+
+      {/* Chỉ phần kết quả chờ query — shell trên hiện ngay khi chuyển trang. */}
+      <Suspense key={JSON.stringify(sp)} fallback={<ListResultsSkeleton />}>
+        <StudentResults sp={sp} />
+      </Suspense>
+    </div>
+  )
+}
+
+async function StudentResults({ sp }: { sp: StudentSearchParams }) {
+  const page = Math.max(1, Number(sp.page) || 1)
+  const { rows: students, total, pageSize } = await listStudents({
+    search: sp.q,
+    status: sp.status,
+    page,
+  })
+  const totalPages = Math.max(1, Math.ceil(total / pageSize))
+  const buildHref = (p: number) => {
+    const params = new URLSearchParams()
+    if (sp.q) params.set('q', sp.q)
+    if (sp.status) params.set('status', sp.status)
+    if (p > 1) params.set('page', String(p))
+    const qs = params.toString()
+    return qs ? `/hoc-sinh?${qs}` : '/hoc-sinh'
+  }
+
+  return (
+    <div className="space-y-6">
+      <p className="text-sm text-muted-foreground">{total} học sinh</p>
 
       {students.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border bg-card p-12 text-center">

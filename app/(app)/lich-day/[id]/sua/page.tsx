@@ -4,6 +4,8 @@ import { getSession } from '@/server/sessions/queries'
 import { listStudents } from '@/server/students/queries'
 import { listLessons } from '@/server/lessons/queries'
 import { changeSessionStatus } from '@/server/sessions/actions'
+import AttendanceForm from '@/components/attendance/attendance-form'
+import { getAttendanceForSession } from '@/server/attendance/queries'
 
 export const metadata = { title: 'Sửa buổi — EduFlow' }
 
@@ -15,6 +17,8 @@ export default async function SuaBuoiPage({ params }: { params: Promise<{ id: st
   const [students, lessons] = await Promise.all([listStudents({ page: 1 }), listLessons({ page: 1 })])
   const studentOpts = students.rows.map((s) => ({ id: s.id, label: s.full_name, defaultFee: s.default_fee }))
   const lessonOpts = lessons.rows.map((l) => ({ id: l.id, label: l.title }))
+
+  const attendance = session.status !== 'cancelled' ? await getAttendanceForSession(id) : null
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
@@ -36,6 +40,13 @@ export default async function SuaBuoiPage({ params }: { params: Promise<{ id: st
             <button type="submit" className="text-sm text-destructive hover:underline">Hủy buổi</button>
           </form>
         </div>
+      )}
+
+      {session.status !== 'cancelled' && (
+        <section className="space-y-3 border-t border-border pt-4">
+          <h2 className="text-lg font-semibold text-foreground">Điểm danh &amp; nhận xét</h2>
+          <AttendanceForm sessionId={session.id} attendance={attendance} />
+        </section>
       )}
     </div>
   )
