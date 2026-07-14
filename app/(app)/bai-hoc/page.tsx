@@ -1,45 +1,29 @@
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
 import Link from 'next/link'
 import { listLessons } from '@/server/lessons/queries'
 import { STATUS_LABEL, LESSON_STATUSES } from '@/lib/validators/lesson'
 import { Button, buttonVariants } from '@/components/ui/button'
+import { ListResultsSkeleton } from '@/components/ui/skeletons'
 
 export const metadata: Metadata = { title: 'Bài học — EduFlow' }
 
 const inputClass =
   'h-9 rounded-md border border-input bg-card px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring/40'
 
+type LessonSearchParams = { q?: string; subject?: string; status?: string; page?: string }
+
 export default async function BaiHocPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; subject?: string; status?: string; page?: string }>
+  searchParams: Promise<LessonSearchParams>
 }) {
   const sp = await searchParams
-  const page = Math.max(1, Number(sp.page) || 1)
-  const { rows: lessons, total, pageSize } = await listLessons({
-    search: sp.q,
-    subject: sp.subject,
-    status: sp.status,
-    page,
-  })
-  const totalPages = Math.max(1, Math.ceil(total / pageSize))
-  const buildHref = (p: number) => {
-    const params = new URLSearchParams()
-    if (sp.q) params.set('q', sp.q)
-    if (sp.subject) params.set('subject', sp.subject)
-    if (sp.status) params.set('status', sp.status)
-    if (p > 1) params.set('page', String(p))
-    const qs = params.toString()
-    return qs ? `/bai-hoc?${qs}` : '/bai-hoc'
-  }
 
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Bài học</h1>
-          <p className="mt-1 text-sm text-muted-foreground">{total} bài học</p>
-        </div>
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Bài học</h1>
         <Link
           href="/bai-hoc/moi"
           className={buttonVariants({ variant: 'success', className: 'w-full sm:w-auto' })}
@@ -69,6 +53,37 @@ export default async function BaiHocPage({
         </select>
         <Button type="submit" variant="outline">Lọc</Button>
       </form>
+
+      {/* Chỉ phần kết quả chờ query — shell trên hiện ngay khi chuyển trang. */}
+      <Suspense key={JSON.stringify(sp)} fallback={<ListResultsSkeleton />}>
+        <LessonResults sp={sp} />
+      </Suspense>
+    </div>
+  )
+}
+
+async function LessonResults({ sp }: { sp: LessonSearchParams }) {
+  const page = Math.max(1, Number(sp.page) || 1)
+  const { rows: lessons, total, pageSize } = await listLessons({
+    search: sp.q,
+    subject: sp.subject,
+    status: sp.status,
+    page,
+  })
+  const totalPages = Math.max(1, Math.ceil(total / pageSize))
+  const buildHref = (p: number) => {
+    const params = new URLSearchParams()
+    if (sp.q) params.set('q', sp.q)
+    if (sp.subject) params.set('subject', sp.subject)
+    if (sp.status) params.set('status', sp.status)
+    if (p > 1) params.set('page', String(p))
+    const qs = params.toString()
+    return qs ? `/bai-hoc?${qs}` : '/bai-hoc'
+  }
+
+  return (
+    <div className="space-y-6">
+      <p className="text-sm text-muted-foreground">{total} bài học</p>
 
       {lessons.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border bg-card p-12 text-center">

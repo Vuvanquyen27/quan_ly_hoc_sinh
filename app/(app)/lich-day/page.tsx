@@ -1,10 +1,13 @@
+import { Suspense } from 'react'
 import Link from 'next/link'
 import { listSessions } from '@/server/sessions/queries'
 import { rangeFor, todayVnDate } from '@/lib/datetime'
 import { CalendarView } from '@/components/calendar/calendar-view'
 import { buttonVariants } from '@/components/ui/button'
 
-const VIEWS: { key: 'list' | 'day' | 'week'; label: string }[] = [
+type CalView = 'list' | 'day' | 'week'
+
+const VIEWS: { key: CalView; label: string }[] = [
   { key: 'day', label: 'Ngày' },
   { key: 'week', label: 'Tuần' },
   { key: 'list', label: 'Danh sách' },
@@ -22,12 +25,9 @@ export default async function LichDayPage({
   searchParams: Promise<{ view?: string; date?: string }>
 }) {
   const sp = await searchParams
-  const view = (['list', 'day', 'week'].includes(sp.view ?? '') ? sp.view : 'week') as 'list' | 'day' | 'week'
+  const view = (['list', 'day', 'week'].includes(sp.view ?? '') ? sp.view : 'week') as CalView
   const today = todayVnDate()
   const date = sp.date ?? today
-
-  const { fromIso, toIso } = rangeFor(view, date)
-  const sessions = await listSessions({ fromIso, toIso })
 
   const hrefFor = (v: string, dt: string) => `/lich-day?view=${v}&date=${dt}`
 
@@ -56,7 +56,19 @@ export default async function LichDayPage({
         </div>
       </div>
 
-      <CalendarView view={view} sessions={sessions} />
+      {/* Chỉ khối lịch chờ query — header + thanh điều hướng hiện ngay. */}
+      <Suspense
+        key={`${view}:${date}`}
+        fallback={<div className="h-[60vh] animate-pulse rounded-lg bg-card" aria-busy="true" aria-label="Đang tải lịch" />}
+      >
+        <SessionsCalendar view={view} date={date} />
+      </Suspense>
     </div>
   )
+}
+
+async function SessionsCalendar({ view, date }: { view: CalView; date: string }) {
+  const { fromIso, toIso } = rangeFor(view, date)
+  const sessions = await listSessions({ fromIso, toIso })
+  return <CalendarView view={view} sessions={sessions} />
 }
