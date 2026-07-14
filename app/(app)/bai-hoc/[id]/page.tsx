@@ -2,10 +2,12 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getLesson } from '@/server/lessons/queries'
+import { listDocumentsForLesson } from '@/server/documents/queries'
 import { archiveLessonAction } from '@/server/lessons/actions'
 import { STATUS_LABEL } from '@/lib/validators/lesson'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Markdown } from '@/components/lessons/markdown'
+import { DocumentList } from '@/components/documents/document-list'
 
 export const metadata: Metadata = { title: 'Chi tiết bài học — EduFlow' }
 
@@ -17,6 +19,8 @@ export default async function ChiTietBaiHocPage({
   const { id } = await params
   const l = await getLesson(id)
   if (!l) notFound()
+
+  const docs = await listDocumentsForLesson(id)
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -59,6 +63,16 @@ export default async function ChiTietBaiHocPage({
           ? <Markdown>{l.content}</Markdown>
           : <p className="text-sm text-muted-foreground">Chưa có nội dung.</p>}
       </div>
+
+      <section className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-foreground">Tài liệu liên quan</h2>
+          <Link href={`/tai-lieu/moi?lessonId=${id}`} className="text-sm text-primary hover:underline">
+            + Đính kèm
+          </Link>
+        </div>
+        <DocumentList rows={docs} />
+      </section>
     </div>
   )
 }
