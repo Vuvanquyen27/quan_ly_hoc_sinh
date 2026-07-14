@@ -89,9 +89,14 @@ export async function changeSessionStatus(formData: FormData): Promise<void> {
   if (status === 'cancelled' && !cancelReason.trim()) return
 
   const supabase = await createServerSupabase()
-  await supabase
+  const { data: current } = await supabase
+    .from('sessions').select('status').eq('id', id).maybeSingle()
+  if (!current || current.status !== 'scheduled') return
+
+  const { error } = await supabase
     .from('sessions')
     .update({ status, cancel_reason: status === 'cancelled' ? cancelReason : null })
     .eq('id', id)
+  if (error) console.error('changeSessionStatus lỗi:', id, error.message)
   revalidatePath('/lich-day')
 }
