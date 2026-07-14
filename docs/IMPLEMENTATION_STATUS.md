@@ -1,8 +1,8 @@
 # IMPLEMENTATION STATUS — Trạng thái triển khai
 
 **Ngày cập nhật:** 2026-07-15
-**Giai đoạn hiện tại:** Giai đoạn 4B **đã hoàn tất** (Điểm danh — attendance); kế tiếp **Giai đoạn 5 — Tài chính: Khoản phải thu & Thu học phí**
-**Nhánh làm việc:** `feat/gd4b-diem-danh`
+**Giai đoạn hiện tại:** Giai đoạn 5 **đã hoàn tất** (Tài chính: Phải thu & Hóa đơn tự động — DB + server + UI); kế tiếp **Giai đoạn 6 — Tài chính: Phải trả & Sổ thu/chi**
+**Nhánh làm việc:** `feat/gd5-phai-thu` (chuẩn bị merge vào `main`)
 
 ---
 
@@ -17,7 +17,9 @@
 | 3B | Tài liệu + Storage | ✅ Xong | migration `0006`/`0007` áp; CRUD tài liệu (file+link) + signed URL + đính kèm bài học/học sinh; **cách ly RLS documents + Storage PASS** |
 | 4A | Lịch & Buổi học | ✅ Xong | migration `0008` áp; RLS sessions PASS; lịch Danh sách/Ngày/Tuần; tạo/sửa buổi; chuyển trạng thái scheduled→completed/cancelled |
 | 4B | Điểm danh (`attendance`) | ✅ Xong | migration `0009` áp; RLS attendance PASS; upsert điểm danh trong trang sửa buổi; lịch sử trong chi tiết học sinh |
-| 5–10 | (Tài chính → Phát hành) | ⏳ Chưa | Theo `docs/ROADMAP.md` |
+| 5A | Tài chính: Phải thu (nền tảng) | ✅ Xong | migration `0010`/`0011`; RLS finance PASS; trigger `amount_paid`/`status` + RPC tổng hợp hóa đơn (chống tính trùng); server queries/actions |
+| 5B | Tài chính: Phải thu (giao diện) | ✅ Xong | nav Tài chính; danh sách + công nợ; chi tiết + ghi thu + hủy; tạo từ buổi (preview) + thủ công |
+| 6–10 | (Phải trả → Phát hành) | ⏳ Chưa | Theo `docs/ROADMAP.md` |
 
 ---
 
@@ -69,6 +71,21 @@
 | Lịch sử điểm danh trong chi tiết học sinh (`/hoc-sinh/[id]`) | ✅ Xong | Section "Lịch sử buổi học & điểm danh"; hiển thị giờ `Asia/Ho_Chi_Minh` |
 | Script test cách ly RLS `scripts/test-rls-attendance.mjs` | ✅ PASS | A/B/admin; đọc-ghi chéo; giả mạo `user_id` 403; admin không đọc |
 
+**Giai đoạn 5 — Tài chính phải thu** (đối chiếu spec `2026-07-15-5-phai-thu-design.md` + plan `2026-07-15-5a-phai-thu-nen-tang.md`)
+
+| Hạng mục | Trạng thái | Ghi chú |
+|---|---|---|
+| Migration `0010_finance_receivables.sql` (4 enum + `categories`/`invoices`/`invoice_items`/`transactions` + RLS + index + CHECK) | ✅ Áp lên DB | CHECK `invoice_id⇒income`, `payable_id⇒expense`; `invoices.student_id` RESTRICT |
+| Migration `0011_finance_functions.sql` (trigger `recalc_invoice_paid` + RPC `create_invoice_from_sessions`) | ✅ Áp lên DB | RPC atomic SECURITY INVOKER; đặt `sessions.is_billed=true` chống tính trùng |
+| Validators `lib/validators/invoice.ts` + `payment.ts` + test | ✅ Xong | 9 test PASS |
+| Server `server/finance/queries.ts` (list/get/preview/receivables) | ✅ Xong | Phân trang; công nợ gom theo học sinh |
+| Server `server/finance/actions.ts` (tạo từ buổi/tạo tay/ghi thu/hủy) | ✅ Xong | Gate `requireWritable`; không nhận `user_id`; ghi thu → trigger cập nhật |
+| Script test cách ly RLS `scripts/test-rls-finance.mjs` | ✅ PASS | 4 bảng; A/B/admin; giả mạo `user_id` 403; admin không đọc |
+| Script test nghiệp vụ `scripts/test-invoice-flow.mjs` | ✅ PASS | Tổng hợp đúng 600k/2 dòng; chống trùng; trigger partial→paid→partial |
+| Nav "Tài chính" + trang `/tai-chinh/phai-thu` (danh sách + lọc + badge quá hạn + công nợ) | ✅ Xong | Tổng công nợ + chip học sinh nợ; responsive bảng/card |
+| Trang `/tai-chinh/phai-thu/[id]` (chi tiết + ghi thu + hủy + lịch sử) | ✅ Xong | `PaymentForm`; nút hủy (soft cancel); ẩn form khi đã thu đủ/hủy |
+| Trang `/tai-chinh/phai-thu/moi` (tạo từ buổi + thủ công) | ✅ Xong | Preview buổi qua query param → tạo (RPC); form thủ công nhập tổng |
+
 ---
 
 ## 4. Chi tiết Giai đoạn 3A (đối chiếu `docs/superpowers/plans/2026-07-13-3a-bai-hoc.md`)
@@ -85,18 +102,16 @@
 
 ---
 
-## 5. Kiểm thử / chất lượng gần nhất (2026-07-15, sau GĐ4B)
+## 5. Kiểm thử / chất lượng gần nhất (2026-07-15, sau GĐ5A)
 
 | Lệnh | Kết quả |
 |---|---|
-| `npm test` | ✅ 33 test PASS (format 6 + student 6 + lesson 3 + document 5 + datetime + session + **attendance 4**) — 7 file test |
-| `npm run lint` | ✅ 0 error (28 warning trong `scripts/*.mjs`, `server/sessions/queries.ts`, `server/attendance/queries.ts`, vô hại, pre-existing) |
-| `npm run build` | ✅ Thành công; route gồm `/lich-day/[id]/sua` (kèm điểm danh), `/hoc-sinh/[id]` (kèm lịch sử), … |
-| Cách ly RLS `students` | ✅ PASS |
-| Cách ly RLS `lessons` | ✅ PASS |
-| Cách ly RLS+Storage `documents` | ✅ PASS |
-| Cách ly RLS `sessions` | ✅ PASS |
-| Cách ly RLS `attendance` | ✅ PASS (6 kiểm tra: tạo, đọc chính, đọc-chéo bị chặn, giả mạo user_id 403, admin không đọc) |
+| `npm test` | ✅ 42 test PASS (format 6 + student 6 + lesson 3 + document 5 + datetime + session + attendance 4 + **invoice/payment 9**) — 9 file test |
+| `npm run lint` | ✅ 0 error (45 warning trong `scripts/*.mjs`, `server/*/queries.ts`, vô hại, pre-existing) |
+| `npm run build` | ✅ Thành công; route `/tai-chinh/phai-thu` + `/[id]` + `/moi` (kèm nav Tài chính) |
+| Cách ly RLS `students`/`lessons`/`documents`/`sessions`/`attendance` | ✅ PASS |
+| Cách ly RLS `finance` (`invoices`/`invoice_items`/`transactions`/`categories`) | ✅ PASS |
+| Nghiệp vụ hóa đơn (`test-invoice-flow.mjs`) | ✅ PASS (tổng hợp không trùng; trigger partial→paid→partial) |
 
 ---
 
@@ -113,6 +128,8 @@
 | `0007_storage_documents.sql` | bucket `documents` riêng tư + Storage policy theo tiền tố `user_id/` |
 | `0008_sessions.sql` | bảng `sessions` + RLS 4 policy + index; FK `student_id` → students |
 | `0009_attendance.sql` | enum `attendance_status` + bảng `attendance` + RLS 4 policy + 2 index + trigger; `UNIQUE(session_id, student_id)`; FK CASCADE |
+| `0010_finance_receivables.sql` | 4 enum + `categories`/`invoices`/`invoice_items`/`transactions` + RLS 4 policy/bảng + index + CHECK |
+| `0011_finance_functions.sql` | trigger `recalc_invoice_paid` (amount_paid/status) + RPC `create_invoice_from_sessions` (tổng hợp atomic) |
 
 Áp bằng: `node --env-file=.env.local scripts/run-migration.mjs <file.sql>` (cần `SUPABASE_DB_URL` trong `.env.local`).
 
@@ -133,6 +150,8 @@ node --env-file=.env.local scripts/test-rls-lessons.mjs              # test các
 node --env-file=.env.local scripts/test-rls-documents.mjs            # test cách ly documents + Storage
 node --env-file=.env.local scripts/test-rls-sessions.mjs             # test cách ly sessions
 node --env-file=.env.local scripts/test-rls-attendance.mjs           # test cách ly attendance
+node --env-file=.env.local scripts/test-rls-finance.mjs              # test cách ly tài chính phải thu
+node --env-file=.env.local scripts/test-invoice-flow.mjs             # test nghiệp vụ hóa đơn tự động + trigger
 ```
 
 ---
