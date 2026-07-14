@@ -97,6 +97,9 @@ export async function changeSessionStatus(formData: FormData): Promise<void> {
     .from('sessions')
     .update({ status, cancel_reason: status === 'cancelled' ? cancelReason : null })
     .eq('id', id)
-  if (error) console.error('changeSessionStatus lỗi:', id, error.message)
+  if (error) {
+    console.error('changeSessionStatus lỗi:', id, error.message)
+    return
+  }
   revalidatePath('/lich-day')
 }
