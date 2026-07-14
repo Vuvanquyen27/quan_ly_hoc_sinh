@@ -20,7 +20,7 @@
 
 ---
 
-## 2. Chi tiết Giai đoạn 3B (đối chiếu `docs/plans/2026-07-14-3b-tai-lieu.md`)
+## 2. Chi tiết Giai đoạn 3B (đối chiếu `docs/superpowers/plans/2026-07-14-3b-tai-lieu.md`)
 
 | Hạng mục | Trạng thái | Ghi chú |
 |---|---|---|
@@ -40,7 +40,7 @@
 
 ---
 
-## 3. Chi tiết Giai đoạn 4A (đối chiếu `docs/plans/2026-07-14-4a-sessions.md`)
+## 3. Chi tiết Giai đoạn 4A (đối chiếu `docs/superpowers/plans/2026-07-14-4a-buoi-hoc.md`)
 
 | Hạng mục | Trạng thái | Ghi chú |
 |---|---|---|
