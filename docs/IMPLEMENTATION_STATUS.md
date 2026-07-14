@@ -1,8 +1,8 @@
 # IMPLEMENTATION STATUS — Trạng thái triển khai
 
 **Ngày cập nhật:** 2026-07-15
-**Giai đoạn hiện tại:** Giai đoạn 5A **đã hoàn tất** (nền tảng phải thu — DB + trigger + RPC + server); kế tiếp **5B — Giao diện phải thu (UI)**
-**Nhánh làm việc:** `feat/gd5-phai-thu`
+**Giai đoạn hiện tại:** Giai đoạn 5 **đã hoàn tất** (Tài chính: Phải thu & Hóa đơn tự động — DB + server + UI); kế tiếp **Giai đoạn 6 — Tài chính: Phải trả & Sổ thu/chi**
+**Nhánh làm việc:** `feat/gd5-phai-thu` (chuẩn bị merge vào `main`)
 
 ---
 
@@ -17,8 +17,8 @@
 | 3B | Tài liệu + Storage | ✅ Xong | migration `0006`/`0007` áp; CRUD tài liệu (file+link) + signed URL + đính kèm bài học/học sinh; **cách ly RLS documents + Storage PASS** |
 | 4A | Lịch & Buổi học | ✅ Xong | migration `0008` áp; RLS sessions PASS; lịch Danh sách/Ngày/Tuần; tạo/sửa buổi; chuyển trạng thái scheduled→completed/cancelled |
 | 4B | Điểm danh (`attendance`) | ✅ Xong | migration `0009` áp; RLS attendance PASS; upsert điểm danh trong trang sửa buổi; lịch sử trong chi tiết học sinh |
-| 5A | Tài chính: Phải thu (nền tảng) | ✅ Xong | migration `0010`/`0011`; RLS finance PASS; trigger `amount_paid`/`status` + RPC tổng hợp hóa đơn (chống tính trùng); server queries/actions. Chưa UI |
-| 5B | Tài chính: Phải thu (giao diện) | ⏳ Đang làm | UI danh sách/chi tiết/ghi thu/tạo từ buổi/công nợ + nav |
+| 5A | Tài chính: Phải thu (nền tảng) | ✅ Xong | migration `0010`/`0011`; RLS finance PASS; trigger `amount_paid`/`status` + RPC tổng hợp hóa đơn (chống tính trùng); server queries/actions |
+| 5B | Tài chính: Phải thu (giao diện) | ✅ Xong | nav Tài chính; danh sách + công nợ; chi tiết + ghi thu + hủy; tạo từ buổi (preview) + thủ công |
 | 6–10 | (Phải trả → Phát hành) | ⏳ Chưa | Theo `docs/ROADMAP.md` |
 
 ---
@@ -71,7 +71,7 @@
 | Lịch sử điểm danh trong chi tiết học sinh (`/hoc-sinh/[id]`) | ✅ Xong | Section "Lịch sử buổi học & điểm danh"; hiển thị giờ `Asia/Ho_Chi_Minh` |
 | Script test cách ly RLS `scripts/test-rls-attendance.mjs` | ✅ PASS | A/B/admin; đọc-ghi chéo; giả mạo `user_id` 403; admin không đọc |
 
-**Giai đoạn 5A — Tài chính phải thu (nền tảng)** (đối chiếu `docs/superpowers/plans/2026-07-15-5a-phai-thu-nen-tang.md`)
+**Giai đoạn 5 — Tài chính phải thu** (đối chiếu spec `2026-07-15-5-phai-thu-design.md` + plan `2026-07-15-5a-phai-thu-nen-tang.md`)
 
 | Hạng mục | Trạng thái | Ghi chú |
 |---|---|---|
@@ -82,6 +82,9 @@
 | Server `server/finance/actions.ts` (tạo từ buổi/tạo tay/ghi thu/hủy) | ✅ Xong | Gate `requireWritable`; không nhận `user_id`; ghi thu → trigger cập nhật |
 | Script test cách ly RLS `scripts/test-rls-finance.mjs` | ✅ PASS | 4 bảng; A/B/admin; giả mạo `user_id` 403; admin không đọc |
 | Script test nghiệp vụ `scripts/test-invoice-flow.mjs` | ✅ PASS | Tổng hợp đúng 600k/2 dòng; chống trùng; trigger partial→paid→partial |
+| Nav "Tài chính" + trang `/tai-chinh/phai-thu` (danh sách + lọc + badge quá hạn + công nợ) | ✅ Xong | Tổng công nợ + chip học sinh nợ; responsive bảng/card |
+| Trang `/tai-chinh/phai-thu/[id]` (chi tiết + ghi thu + hủy + lịch sử) | ✅ Xong | `PaymentForm`; nút hủy (soft cancel); ẩn form khi đã thu đủ/hủy |
+| Trang `/tai-chinh/phai-thu/moi` (tạo từ buổi + thủ công) | ✅ Xong | Preview buổi qua query param → tạo (RPC); form thủ công nhập tổng |
 
 ---
 
@@ -105,7 +108,7 @@
 |---|---|
 | `npm test` | ✅ 42 test PASS (format 6 + student 6 + lesson 3 + document 5 + datetime + session + attendance 4 + **invoice/payment 9**) — 9 file test |
 | `npm run lint` | ✅ 0 error (45 warning trong `scripts/*.mjs`, `server/*/queries.ts`, vô hại, pre-existing) |
-| `npm run build` | ✅ Thành công; server tài chính (`server/finance/*`) compile sạch (UI phải thu ở 5B) |
+| `npm run build` | ✅ Thành công; route `/tai-chinh/phai-thu` + `/[id]` + `/moi` (kèm nav Tài chính) |
 | Cách ly RLS `students`/`lessons`/`documents`/`sessions`/`attendance` | ✅ PASS |
 | Cách ly RLS `finance` (`invoices`/`invoice_items`/`transactions`/`categories`) | ✅ PASS |
 | Nghiệp vụ hóa đơn (`test-invoice-flow.mjs`) | ✅ PASS (tổng hợp không trùng; trigger partial→paid→partial) |
