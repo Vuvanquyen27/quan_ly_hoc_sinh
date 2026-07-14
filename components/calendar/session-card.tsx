@@ -4,7 +4,6 @@ import Link from 'next/link'
 import { changeSessionStatus } from '@/server/sessions/actions'
 import type { SessionRow } from '@/server/sessions/queries'
 import { STATUS_LABEL } from '@/lib/validators/session'
-import { formatDateTime } from '@/lib/format'
 
 function timeHM(iso: string) {
   return new Intl.DateTimeFormat('vi-VN', {

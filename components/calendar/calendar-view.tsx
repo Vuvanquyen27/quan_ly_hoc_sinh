@@ -1,11 +1,12 @@
 import type { SessionRow } from '@/server/sessions/queries'
 import { SessionCard } from './session-card'
 import { formatDate } from '@/lib/format'
+import { utcToVnLocal } from '@/lib/datetime'
 
 function groupByDay(sessions: SessionRow[]): [string, SessionRow[]][] {
   const map = new Map<string, SessionRow[]>()
   for (const s of sessions) {
-    const key = s.start_time.slice(0, 10) // theo ngày UTC — đủ cho gom nhóm hiển thị
+    const key = utcToVnLocal(s.start_time).slice(0, 10)
     if (!map.has(key)) map.set(key, [])
     map.get(key)!.push(s)
   }
