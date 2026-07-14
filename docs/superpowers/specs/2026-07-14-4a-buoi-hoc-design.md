@@ -112,7 +112,7 @@ create policy sessions_delete on public.sessions for delete using (auth.uid() = 
 - `components/calendar/calendar-view.tsx` — render theo view:
   - **Danh sách**: nhóm theo ngày, mỗi buổi 1 dòng (giờ · học sinh · môn · badge).
   - **Ngày**: các buổi trong ngày, sắp theo giờ.
-  - **Tuần**: 7 cột (T2–CN) trên desktop (`hidden md:grid grid-cols-7`); điện thoại rơi về danh sách theo ngày (`md:hidden`).
+  - **Tuần**: MVP hiển thị **nhóm theo ngày** (T2–CN, mỗi ngày một cụm buổi) — đủ cho dạy 1-1, giữ interface `CalendarView` để nâng cấp lưới 7 cột sau. (Quyết định 2026-07-14: chọn nhóm-theo-ngày thay vì lưới 7 cột ở MVP.)
 - `components/calendar/session-card.tsx` — thẻ buổi: giờ (VN), tên học sinh, tiêu đề/môn, badge trạng thái; link sang `/lich-day/[id]/sua`. Nếu buổi **quá giờ mà vẫn `scheduled`** → hiện gợi ý "Đánh dấu hoàn thành" (nút gọi `changeSessionStatus`).
 - `app/(app)/lich-day/moi/page.tsx` + `app/(app)/lich-day/[id]/sua/page.tsx` — form tạo/sửa (nạp `getSession`, danh sách học sinh + bài học cho select).
 - `components/sessions/session-form.tsx` — form (Client, theo mẫu `lesson-form.tsx`): chọn học sinh (bắt buộc), bài học (tùy chọn), `datetime-local` bắt đầu/kết thúc, hình thức (radio online/offline), địa điểm/link, học phí (số, tự điền `default_fee` khi chọn học sinh — hoặc để trống để action tự điền), tiêu đề. Nút chuyển trạng thái ở trang sửa (Hoàn thành / Hủy — hủy mở ô lý do).
