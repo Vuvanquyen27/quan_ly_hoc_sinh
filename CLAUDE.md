@@ -20,10 +20,10 @@ Bối cảnh: **Việt Nam**. Giao diện **tiếng Việt**, tiền tệ **VND*
 
 | Mục | Trạng thái |
 |---|---|
-| Giai đoạn | **Giai đoạn 6 đã hoàn tất** (Tài chính: Phải trả & Sổ thu/chi); kế tiếp **Giai đoạn 7 — Báo cáo & Dashboard** |
-| Đã có | GĐ0–6: Next.js App Router + TS + Tailwind + shadcn/ui; Supabase (3 client + RLS); Auth/hồ sơ; CRUD học sinh/bài học/tài liệu(+Storage)/lịch buổi/điểm danh; Tài chính phải thu (hóa đơn tự động) + phải trả + sổ thu/chi + hạn thanh toán; migrations `0001`→`0012` đã áp |
-| Chưa có | GĐ7 Báo cáo/Dashboard; GĐ8 Cài đặt/Thông báo; GĐ9 khu ADMIN; GĐ10 hoàn thiện & phát hành |
-| Việc kế tiếp | Merge `feat/gd6-phai-tra` vào `main`, rồi triển khai GĐ7 (xem `docs/IMPLEMENTATION_STATUS.md §9`) |
+| Giai đoạn | **Giai đoạn 7 đã hoàn tất** (Báo cáo & Dashboard); kế tiếp **Giai đoạn 8 — Cài đặt & Thông báo** |
+| Đã có | GĐ0–7: Next.js App Router + TS + Tailwind + shadcn/ui; Supabase (3 client + RLS); Auth/hồ sơ; CRUD học sinh/bài học/tài liệu(+Storage)/lịch buổi/điểm danh; Tài chính (phải thu + phải trả + sổ thu/chi + hạn thanh toán); Báo cáo + Dashboard (4 view `security_invoker`); migrations `0001`→`0013` đã áp |
+| Chưa có | GĐ8 Cài đặt/Thông báo; GĐ9 khu ADMIN; GĐ10 hoàn thiện & phát hành |
+| Việc kế tiếp | Merge `feat/gd7-bao-cao` vào `main`, rồi triển khai GĐ8 (xem `docs/IMPLEMENTATION_STATUS.md §9`) |
 
 ---
 

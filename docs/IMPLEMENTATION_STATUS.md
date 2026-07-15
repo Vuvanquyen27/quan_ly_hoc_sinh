@@ -1,8 +1,8 @@
 # IMPLEMENTATION STATUS — Trạng thái triển khai
 
 **Ngày cập nhật:** 2026-07-15
-**Giai đoạn hiện tại:** Giai đoạn 6 **đã hoàn tất** (Tài chính: Phải trả & Sổ thu/chi — DB + trigger + server + UI); kế tiếp **Giai đoạn 7 — Báo cáo & Dashboard**
-**Nhánh làm việc:** `feat/gd6-phai-tra` (chuẩn bị merge vào `main`)
+**Giai đoạn hiện tại:** Giai đoạn 7 **đã hoàn tất** (Báo cáo & Dashboard — views + server + UI); kế tiếp **Giai đoạn 8 — Cài đặt & Thông báo**
+**Nhánh làm việc:** `feat/gd7-bao-cao` (chuẩn bị merge vào `main`)
 
 ---
 
@@ -20,7 +20,8 @@
 | 5A | Tài chính: Phải thu (nền tảng) | ✅ Xong | migration `0010`/`0011`; RLS finance PASS; trigger `amount_paid`/`status` + RPC tổng hợp hóa đơn (chống tính trùng); server queries/actions |
 | 5B | Tài chính: Phải thu (giao diện) | ✅ Xong | nav Tài chính; danh sách + công nợ; chi tiết + ghi thu + hủy; tạo từ buổi (preview) + thủ công |
 | 6 | Tài chính: Phải trả & Sổ thu/chi | ✅ Xong | migration `0012`; RLS payables PASS; trigger `recalc_payable_paid`; sub-nav tabs; phải trả (list/tạo/chi tiết/sửa/trả dần); sổ thu/chi + danh mục; hạn thanh toán (gộp 2 chiều) + lịch sử |
-| 7–10 | (Báo cáo → Phát hành) | ⏳ Chưa | Theo `docs/ROADMAP.md` |
+| 7 | Báo cáo & Dashboard | ✅ Xong | migration `0013` (4 view `security_invoker`, gom tháng giờ VN); RLS view PASS + đối chiếu số liệu PASS; `/bao-cao` (kỳ + tổng + biểu đồ CSS/SVG + công nợ + quá hạn); `/tong-quan` chỉ số thật + buổi sắp tới + cảnh báo + biểu đồ 6 tháng; nav "Báo cáo" |
+| 8–10 | (Cài đặt → Phát hành) | ⏳ Chưa | Theo `docs/ROADMAP.md` |
 
 ---
 
@@ -103,6 +104,20 @@
 | Script test cách ly RLS `scripts/test-rls-payables.mjs` | ✅ PASS | A/B/admin; đọc-ghi-sửa chéo; giả mạo `user_id` 403; admin không đọc |
 | Script test nghiệp vụ `scripts/test-payable-flow.mjs` | ✅ PASS | Trả dần partial→paid→partial; trigger đúng qua INSERT/DELETE; CHECK chặn income gắn payable |
 
+**Giai đoạn 7 — Báo cáo & Dashboard** (đối chiếu spec `2026-07-15-7-bao-cao-dashboard-design.md` + plan `2026-07-15-7-bao-cao-dashboard.md`)
+
+| Hạng mục | Trạng thái | Ghi chú |
+|---|---|---|
+| Migration `0013_report_views.sql` (4 view `security_invoker` + grant authenticated) | ✅ Áp lên DB | `v_cashflow_monthly` gom tháng theo **giờ VN**; `v_receivables_outstanding`/`v_payables_outstanding`/`v_upcoming_sessions` |
+| Helper `lib/reports.ts` (`vnYearMonth`/`lastNMonths`/`monthLabel`) + test | ✅ Xong | 3 test PASS |
+| Server `server/reports/queries.ts` | ✅ Xong | `cashflowMonthly`/`cashflowRange`/`reportSummary`/`receivablesOutstanding`/`payablesOutstanding`/`upcomingSessions`/`dashboardStats` đọc view |
+| Biểu đồ `components/reports/cashflow-chart.tsx` (CSS/SVG, 0 thư viện) | ✅ Xong | Cột thu/chi + ròng theo tháng, responsive |
+| Trang `/bao-cao` | ✅ Xong | Chọn kỳ (from/to tháng) + thẻ tổng thu/chi/lợi nhuận/ròng + biểu đồ + công nợ 2 chiều + quá hạn (dùng `listUpcomingDue`) |
+| Dashboard `/tong-quan` (nâng cấp) | ✅ Xong | Chỉ số thật (HS đang học, buổi 7 ngày, phải thu, dòng tiền tháng), buổi sắp tới, cảnh báo quá hạn, biểu đồ 6 tháng |
+| Nav "Báo cáo" (`components/app-nav.tsx`) | ✅ Xong | Mục thứ 7, icon `BarChart3` → `/bao-cao` |
+| Script `scripts/test-rls-report-views.mjs` | ✅ PASS | A thấy cả 4 view; B & admin thấy 0 dòng (security_invoker cách ly) |
+| Script `scripts/test-report-values.mjs` | ✅ PASS | Đối chiếu số liệu: GD `30/06 18:00Z` gom đúng **tháng 7 VN**; thu/chi/ròng + phải thu khớp |
+
 ---
 
 ## 4. Chi tiết Giai đoạn 3A (đối chiếu `docs/superpowers/plans/2026-07-13-3a-bai-hoc.md`)
@@ -119,18 +134,18 @@
 
 ---
 
-## 5. Kiểm thử / chất lượng gần nhất (2026-07-15, sau GĐ6)
+## 5. Kiểm thử / chất lượng gần nhất (2026-07-15, sau GĐ7)
 
 | Lệnh | Kết quả |
 |---|---|
-| `npm test` | ✅ 51 test PASS (42 cũ + **payable/transaction/category 9**) — 12 file test |
-| `npm run lint` | ✅ 0 error (57 warning trong `scripts/*.mjs`, `server/*/*.ts` — unused-destructure/`any`, vô hại, pre-existing) |
-| `npm run build` | ✅ Thành công; thêm route `/tai-chinh/phai-tra` (+`/[id]`, `/[id]/sua`, `/moi`), `/thu-chi`, `/danh-muc`, `/han-thanh-toan`, `/lich-su` |
+| `npm test` | ✅ 54 test PASS (51 cũ + **reports helper 3**) — 13 file test |
+| `npm run lint` | ✅ 0 error (59 warning trong `scripts/*.mjs`, `server/*/*.ts` — unused-destructure/`any`, vô hại, pre-existing) |
+| `npm run build` | ✅ Thành công; thêm route `/bao-cao`; nâng cấp `/tong-quan`; nav "Báo cáo" |
 | Cách ly RLS `students`/`lessons`/`documents`/`sessions`/`attendance` | ✅ PASS |
-| Cách ly RLS `finance` (`invoices`/`invoice_items`/`transactions`/`categories`) | ✅ PASS |
-| Cách ly RLS `payables` (`test-rls-payables.mjs`) | ✅ PASS (A/B/admin; giả mạo `user_id` 403) |
-| Nghiệp vụ hóa đơn (`test-invoice-flow.mjs`) | ✅ PASS (không hồi quy; trigger partial→paid→partial) |
-| Nghiệp vụ phải trả (`test-payable-flow.mjs`) | ✅ PASS (trả dần partial→paid→partial; CHECK chặn income gắn payable) |
+| Cách ly RLS `finance`/`payables` | ✅ PASS |
+| Cách ly RLS view báo cáo (`test-rls-report-views.mjs`) | ✅ PASS (A thấy 4 view; B & admin 0 dòng — security_invoker) |
+| Đối chiếu số liệu báo cáo (`test-report-values.mjs`) | ✅ PASS (gom tháng giờ VN đúng; thu/chi/ròng/phải thu khớp) |
+| Nghiệp vụ hóa đơn/phải trả (`test-invoice-flow`/`test-payable-flow`) | ✅ PASS (không hồi quy) |
 
 ---
 
@@ -150,6 +165,7 @@
 | `0010_finance_receivables.sql` | 4 enum + `categories`/`invoices`/`invoice_items`/`transactions` + RLS 4 policy/bảng + index + CHECK |
 | `0011_finance_functions.sql` | trigger `recalc_invoice_paid` (amount_paid/status) + RPC `create_invoice_from_sessions` (tổng hợp atomic) |
 | `0012_payables.sql` | enum `payable_status` + bảng `payables` + FK `transactions.payable_id` + index `(user_id, payable_id)` + trigger `recalc_payable_paid` + RLS 4 policy |
+| `0013_report_views.sql` | 4 view `security_invoker` báo cáo (`v_cashflow_monthly` gom tháng giờ VN, `v_receivables_outstanding`, `v_payables_outstanding`, `v_upcoming_sessions`) + grant `authenticated` |
 
 Áp bằng: `node --env-file=.env.local scripts/run-migration.mjs supabase/migrations/<file.sql>` (cần `SUPABASE_DB_URL` trong `.env.local`).
 
@@ -174,6 +190,8 @@ node --env-file=.env.local scripts/test-rls-finance.mjs              # test các
 node --env-file=.env.local scripts/test-invoice-flow.mjs             # test nghiệp vụ hóa đơn tự động + trigger
 node --env-file=.env.local scripts/test-rls-payables.mjs            # test cách ly payables (phải trả)
 node --env-file=.env.local scripts/test-payable-flow.mjs           # test nghiệp vụ phải trả + trigger
+node --env-file=.env.local scripts/test-rls-report-views.mjs       # test cách ly 4 view báo cáo
+node --env-file=.env.local scripts/test-report-values.mjs          # đối chiếu số liệu view (gom tháng giờ VN)
 ```
 
 ---
@@ -190,5 +208,5 @@ node --env-file=.env.local scripts/test-payable-flow.mjs           # test nghi�
 
 ## 9. Bước kế tiếp
 
-1. **Merge `feat/gd6-phai-tra` vào `main`** (giữ nếp GĐ5 — sau khi mọi kiểm thử xanh).
-2. **Giai đoạn 7 — Báo cáo & Dashboard**: views `v_cashflow_monthly`/`v_receivables_outstanding`/`v_payables_outstanding`/`v_upcoming_sessions` (security_invoker) tôn trọng RLS; trang Báo cáo (thu/chi/lợi nhuận/dòng tiền theo kỳ) + Dashboard tổng quan (thẻ chỉ số, buổi sắp tới, cảnh báo quá hạn, biểu đồ dòng tiền 6 tháng). Phụ thuộc GĐ5 + GĐ6.
+1. **Merge `feat/gd7-bao-cao` vào `main`** (giữ nếp — sau khi mọi kiểm thử xanh).
+2. **Giai đoạn 8 — Cài đặt & Thông báo**: UI cài đặt (hồ sơ/tiền tệ/múi giờ/tùy chọn nhắc); migration `notifications` (enum `notification_type`) + RLS; thông báo in-app (nhắc buổi/nhắc học phí — sinh định kỳ P1); đánh dấu đã đọc; test cách ly RLS `notifications`. Phụ thuộc GĐ1.
