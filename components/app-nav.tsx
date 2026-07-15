@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Users, BookOpen, FileText, CalendarDays, Wallet } from 'lucide-react'
+import { LayoutDashboard, Users, BookOpen, FileText, CalendarDays, Wallet, BarChart3 } from 'lucide-react'
 
 const NAV_ITEMS = [
   { href: '/tong-quan', label: 'Tổng quan', icon: LayoutDashboard },
@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { href: '/tai-lieu', label: 'Tài liệu', icon: FileText },
   { href: '/lich-day', label: 'Lịch dạy', icon: CalendarDays },
   { href: '/tai-chinh/phai-thu', label: 'Tài chính', icon: Wallet },
+  { href: '/bao-cao', label: 'Báo cáo', icon: BarChart3 },
 ]
 
 function useIsActive() {
