@@ -6,8 +6,6 @@ import { upcomingSessions } from '@/server/reports/queries'
 import { listUpcomingDue } from '@/server/finance/ledger'
 import { formatVND, formatDate, formatDateTime } from '@/lib/format'
 
-export type NotificationActionState = { error?: string; ok?: boolean; created?: number } | null
-
 async function currentUserId(): Promise<string | null> {
   const supabase = await createServerSupabase()
   const {
@@ -42,9 +40,9 @@ export async function deleteNotification(formData: FormData): Promise<void> {
 }
 
 /** Sinh nhắc nhở từ buổi sắp tới + khoản quá hạn (dedup theo type+entity_id, gate prefs). */
-export async function generateReminders(): Promise<NotificationActionState> {
+export async function generateReminders(): Promise<void> {
   const uid = await currentUserId()
-  if (!uid) return { error: 'Chưa đăng nhập.' }
+  if (!uid) return
   const supabase = await createServerSupabase()
 
   const { data: settings } = await supabase
@@ -86,7 +84,7 @@ export async function generateReminders(): Promise<NotificationActionState> {
     }
   }
 
-  if (candidates.length === 0) return { ok: true, created: 0 }
+  if (candidates.length === 0) return
 
   // Dedup theo (type, entity_id) đã tồn tại
   const { data: existing } = await supabase
@@ -98,11 +96,13 @@ export async function generateReminders(): Promise<NotificationActionState> {
     )
   const seen = new Set((existing ?? []).map((e) => `${e.type}:${e.entity_id}`))
   const toInsert = candidates.filter((c) => !seen.has(`${c.type}:${c.entity_id}`))
-  if (toInsert.length === 0) return { ok: true, created: 0 }
+  if (toInsert.length === 0) return
 
   // Không truyền user_id — CSDL đặt mặc định auth.uid().
   const { error } = await supabase.from('notifications').insert(toInsert)
-  if (error) return { error: 'Không tạo được nhắc nhở.' }
+  if (error) {
+    console.error('generateReminders lỗi:', error.message)
+    return
+  }
   revalidatePath('/thong-bao')
-  return { ok: true, created: toInsert.length }
 }
