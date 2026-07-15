@@ -5,6 +5,8 @@ import { signOutAction } from '@/server/auth/actions'
 import { Button } from '@/components/ui/button'
 import { DesktopNav, BottomNav } from '@/components/app-nav'
 import { ThemeToggle } from '@/components/theme-toggle'
+import { Bell, Settings } from 'lucide-react'
+import { unreadCount } from '@/server/notifications/queries'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const ctx = await getSessionContext()
@@ -27,6 +29,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   }
 
   const readOnly = isReadOnly(ctx)
+  const unread = await unreadCount()
 
   return (
     <div className="min-h-screen">
@@ -43,6 +46,25 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
             <span className="hidden text-sm text-muted-foreground sm:inline">{ctx.user.email}</span>
+            <Link
+              href="/thong-bao"
+              aria-label="Thông báo"
+              className="relative rounded-lg p-2 text-muted-foreground transition-colors hover:text-foreground"
+            >
+              <Bell className="size-5" />
+              {unread > 0 && (
+                <span className="absolute -right-0.5 -top-0.5 flex min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[0.65rem] font-medium text-white">
+                  {unread > 9 ? '9+' : unread}
+                </span>
+              )}
+            </Link>
+            <Link
+              href="/cai-dat"
+              aria-label="Cài đặt"
+              className="rounded-lg p-2 text-muted-foreground transition-colors hover:text-foreground"
+            >
+              <Settings className="size-5" />
+            </Link>
             <ThemeToggle />
             <form action={signOutAction}>
               <Button variant="outline" size="sm">Đăng xuất</Button>
