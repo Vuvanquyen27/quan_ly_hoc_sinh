@@ -1,8 +1,8 @@
 # IMPLEMENTATION STATUS — Trạng thái triển khai
 
 **Ngày cập nhật:** 2026-07-15
-**Giai đoạn hiện tại:** Giai đoạn 7 **đã hoàn tất** (Báo cáo & Dashboard — views + server + UI); kế tiếp **Giai đoạn 8 — Cài đặt & Thông báo**
-**Nhánh làm việc:** `feat/gd7-bao-cao` (chuẩn bị merge vào `main`)
+**Giai đoạn hiện tại:** Giai đoạn 8 **đã hoàn tất** (Cài đặt & Thông báo — DB + Storage + server + UI); kế tiếp **Giai đoạn 9 — Khu vực ADMIN**
+**Nhánh làm việc:** `feat/gd8-cai-dat` (chuẩn bị merge vào `main`)
 
 ---
 
@@ -21,7 +21,8 @@
 | 5B | Tài chính: Phải thu (giao diện) | ✅ Xong | nav Tài chính; danh sách + công nợ; chi tiết + ghi thu + hủy; tạo từ buổi (preview) + thủ công |
 | 6 | Tài chính: Phải trả & Sổ thu/chi | ✅ Xong | migration `0012`; RLS payables PASS; trigger `recalc_payable_paid`; sub-nav tabs; phải trả (list/tạo/chi tiết/sửa/trả dần); sổ thu/chi + danh mục; hạn thanh toán (gộp 2 chiều) + lịch sử |
 | 7 | Báo cáo & Dashboard | ✅ Xong | migration `0013` (4 view `security_invoker`, gom tháng giờ VN); RLS view PASS + đối chiếu số liệu PASS; `/bao-cao` (kỳ + tổng + biểu đồ CSS/SVG + công nợ + quá hạn); `/tong-quan` chỉ số thật + buổi sắp tới + cảnh báo + biểu đồ 6 tháng; nav "Báo cáo" |
-| 8–10 | (Cài đặt → Phát hành) | ⏳ Chưa | Theo `docs/ROADMAP.md` |
+| 8 | Cài đặt & Thông báo | ✅ Xong | migration `0014` (notifications+RLS) `0015` (bucket avatars public); RLS notifications+avatars PASS; `/cai-dat` (hồ sơ+avatar+tùy chọn+gói); `/thong-bao` + chuông header; nút "Tạo nhắc nhở" (dedup, gate prefs); cài đặt lưu, hiển thị VN cố định MVP |
+| 9–10 | (ADMIN → Phát hành) | ⏳ Chưa | Theo `docs/ROADMAP.md` |
 
 ---
 
@@ -118,6 +119,19 @@
 | Script `scripts/test-rls-report-views.mjs` | ✅ PASS | A thấy cả 4 view; B & admin thấy 0 dòng (security_invoker cách ly) |
 | Script `scripts/test-report-values.mjs` | ✅ PASS | Đối chiếu số liệu: GD `30/06 18:00Z` gom đúng **tháng 7 VN**; thu/chi/ròng + phải thu khớp |
 
+**Giai đoạn 8 — Cài đặt & Thông báo** (đối chiếu spec `2026-07-15-8-cai-dat-thong-bao-design.md` + plan `2026-07-15-8-cai-dat-thong-bao.md`)
+
+| Hạng mục | Trạng thái | Ghi chú |
+|---|---|---|
+| Migration `0014_notifications.sql` (enum `notification_type` + bảng + RLS 4 policy + 2 index) | ✅ Áp lên DB | `session_reminder`/`payment_due`/`system`; FK CASCADE |
+| Migration `0015_storage_avatars.sql` (bucket `avatars` public + 3 policy ghi theo tiền tố) | ✅ Áp lên DB | Đọc công khai; cách ly chiều ghi `user_id/` |
+| Validators `settings.ts` (profile/settings) + `notification.ts` (nhãn) + test | ✅ Xong | 3 test PASS |
+| Server `server/settings/` (getSettings + updateProfile whitelist + updateSettings + uploadAvatar) | ✅ Xong | Gate `requireWritable`; **chỉ ghi** `full_name/phone/avatar_url`; upload `avatars/{uid}/avatar.<ext>` |
+| Server `server/notifications/` (list/unreadCount + markRead/markAllRead/delete + generateReminders) | ✅ Xong | `generateReminders` dedup theo `(type, entity_id)`, gate `notify_*`; trả `void` (form action) |
+| UI `/cai-dat` (hồ sơ + avatar upload + tùy chọn + gói chỉ đọc) | ✅ Xong | Ghi chú "hiển thị VN cố định" ở form tùy chọn |
+| UI `/thong-bao` (danh sách + "Tạo nhắc nhở" + "Đọc hết" + đánh dấu/xóa) + chuông & Cài đặt ở header | ✅ Xong | Chuông hiện `unreadCount`; header thêm 2 icon |
+| Script `scripts/test-rls-notifications.mjs` | ✅ PASS | Cách ly `notifications` (A/B/admin; forge 403; B không sửa của A) **+** Storage `avatars` (B chặn khỏi tiền tố A) |
+
 ---
 
 ## 4. Chi tiết Giai đoạn 3A (đối chiếu `docs/superpowers/plans/2026-07-13-3a-bai-hoc.md`)
@@ -134,17 +148,17 @@
 
 ---
 
-## 5. Kiểm thử / chất lượng gần nhất (2026-07-15, sau GĐ7)
+## 5. Kiểm thử / chất lượng gần nhất (2026-07-15, sau GĐ8)
 
 | Lệnh | Kết quả |
 |---|---|
-| `npm test` | ✅ 54 test PASS (51 cũ + **reports helper 3**) — 13 file test |
-| `npm run lint` | ✅ 0 error (59 warning trong `scripts/*.mjs`, `server/*/*.ts` — unused-destructure/`any`, vô hại, pre-existing) |
-| `npm run build` | ✅ Thành công; thêm route `/bao-cao`; nâng cấp `/tong-quan`; nav "Báo cáo" |
+| `npm test` | ✅ 57 test PASS (54 cũ + **settings 3**) — 14 file test |
+| `npm run lint` | ✅ 0 error (71 warning trong `scripts/*.mjs`, `server/*/*.ts` — unused-destructure/`any`, vô hại, pre-existing) |
+| `npm run build` | ✅ Thành công; thêm route `/cai-dat` + `/thong-bao`; chuông & Cài đặt ở header |
 | Cách ly RLS `students`/`lessons`/`documents`/`sessions`/`attendance` | ✅ PASS |
-| Cách ly RLS `finance`/`payables` | ✅ PASS |
-| Cách ly RLS view báo cáo (`test-rls-report-views.mjs`) | ✅ PASS (A thấy 4 view; B & admin 0 dòng — security_invoker) |
-| Đối chiếu số liệu báo cáo (`test-report-values.mjs`) | ✅ PASS (gom tháng giờ VN đúng; thu/chi/ròng/phải thu khớp) |
+| Cách ly RLS `finance`/`payables`/view báo cáo | ✅ PASS |
+| Cách ly RLS `notifications` + Storage `avatars` (`test-rls-notifications.mjs`) | ✅ PASS (forge 403; B chặn khỏi tiền tố avatars/A) |
+| Đối chiếu số liệu báo cáo (`test-report-values.mjs`) | ✅ PASS (gom tháng giờ VN đúng) |
 | Nghiệp vụ hóa đơn/phải trả (`test-invoice-flow`/`test-payable-flow`) | ✅ PASS (không hồi quy) |
 
 ---
@@ -166,6 +180,8 @@
 | `0011_finance_functions.sql` | trigger `recalc_invoice_paid` (amount_paid/status) + RPC `create_invoice_from_sessions` (tổng hợp atomic) |
 | `0012_payables.sql` | enum `payable_status` + bảng `payables` + FK `transactions.payable_id` + index `(user_id, payable_id)` + trigger `recalc_payable_paid` + RLS 4 policy |
 | `0013_report_views.sql` | 4 view `security_invoker` báo cáo (`v_cashflow_monthly` gom tháng giờ VN, `v_receivables_outstanding`, `v_payables_outstanding`, `v_upcoming_sessions`) + grant `authenticated` |
+| `0014_notifications.sql` | enum `notification_type` + bảng `notifications` + RLS 4 policy + 2 index |
+| `0015_storage_avatars.sql` | bucket Storage `avatars` (public) + 3 policy ghi/sửa/xóa theo tiền tố `user_id/` |
 
 Áp bằng: `node --env-file=.env.local scripts/run-migration.mjs supabase/migrations/<file.sql>` (cần `SUPABASE_DB_URL` trong `.env.local`).
 
@@ -192,6 +208,7 @@ node --env-file=.env.local scripts/test-rls-payables.mjs            # test cách
 node --env-file=.env.local scripts/test-payable-flow.mjs           # test nghiệp vụ phải trả + trigger
 node --env-file=.env.local scripts/test-rls-report-views.mjs       # test cách ly 4 view báo cáo
 node --env-file=.env.local scripts/test-report-values.mjs          # đối chiếu số liệu view (gom tháng giờ VN)
+node --env-file=.env.local scripts/test-rls-notifications.mjs      # test cách ly notifications + Storage avatars
 ```
 
 ---
@@ -208,5 +225,5 @@ node --env-file=.env.local scripts/test-report-values.mjs          # đối chi�
 
 ## 9. Bước kế tiếp
 
-1. **Merge `feat/gd7-bao-cao` vào `main`** (giữ nếp — sau khi mọi kiểm thử xanh).
-2. **Giai đoạn 8 — Cài đặt & Thông báo**: UI cài đặt (hồ sơ/tiền tệ/múi giờ/tùy chọn nhắc); migration `notifications` (enum `notification_type`) + RLS; thông báo in-app (nhắc buổi/nhắc học phí — sinh định kỳ P1); đánh dấu đã đọc; test cách ly RLS `notifications`. Phụ thuộc GĐ1.
+1. **Merge `feat/gd8-cai-dat` vào `main`** (giữ nếp — sau khi mọi kiểm thử xanh).
+2. **Giai đoạn 9 — Khu vực ADMIN**: khu `app/admin` layout riêng + middleware chặn non-admin; migration `subscription_payments` + `admin_audit_logs` (RLS `is_admin()`); quản lý tài khoản & thuê bao (khóa/mở, xác nhận thanh toán → kích hoạt/gia hạn, đổi/hủy gói); ghi `admin_audit_logs`; thống kê tổng hợp. **RLS test:** ADMIN **không** đọc dữ liệu nghiệp vụ USER. Cân nhắc siết RLS cột `profiles` (chặn USER tự đổi `is_locked`) — xem ghi chú §7 spec GĐ8. Phụ thuộc GĐ1.
