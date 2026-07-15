@@ -20,10 +20,10 @@ Bối cảnh: **Việt Nam**. Giao diện **tiếng Việt**, tiền tệ **VND*
 
 | Mục | Trạng thái |
 |---|---|
-| Giai đoạn | **Đang triển khai Giai đoạn 0 — Nền móng dự án** |
-| Đã có | Bộ tài liệu trong `docs/`, `README.md`, tệp này, Git repo, scaffold Next.js App Router + TypeScript + Tailwind CSS v4 |
-| Chưa có | shadcn/ui, tiện ích định dạng/test, Supabase clients, `.env.local`, middleware, migrations, CSDL thực tế |
-| Việc kế tiếp | Hoàn tất checklist Giai đoạn 0 trong `docs/IMPLEMENTATION_STATUS.md` trước khi sang Giai đoạn 1 |
+| Giai đoạn | **Giai đoạn 6 đã hoàn tất** (Tài chính: Phải trả & Sổ thu/chi); kế tiếp **Giai đoạn 7 — Báo cáo & Dashboard** |
+| Đã có | GĐ0–6: Next.js App Router + TS + Tailwind + shadcn/ui; Supabase (3 client + RLS); Auth/hồ sơ; CRUD học sinh/bài học/tài liệu(+Storage)/lịch buổi/điểm danh; Tài chính phải thu (hóa đơn tự động) + phải trả + sổ thu/chi + hạn thanh toán; migrations `0001`→`0012` đã áp |
+| Chưa có | GĐ7 Báo cáo/Dashboard; GĐ8 Cài đặt/Thông báo; GĐ9 khu ADMIN; GĐ10 hoàn thiện & phát hành |
+| Việc kế tiếp | Merge `feat/gd6-phai-tra` vào `main`, rồi triển khai GĐ7 (xem `docs/IMPLEMENTATION_STATUS.md §9`) |
 
 ---
 

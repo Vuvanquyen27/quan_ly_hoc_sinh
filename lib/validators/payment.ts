@@ -18,3 +18,13 @@ export const paymentSchema = z.object({
 })
 
 export type PaymentInput = z.infer<typeof paymentSchema>
+
+export const payablePaymentSchema = z.object({
+  payableId: z.string().trim().min(1, 'Thiếu khoản phải trả'),
+  amount: z.coerce.number().int('Số tiền phải là số nguyên').positive('Số tiền phải lớn hơn 0'),
+  method: z.enum(PAYMENT_METHODS),
+  occurredAt: z.string().optional(),
+  reference: z.string().optional(),
+})
+
+export type PayablePaymentInput = z.infer<typeof payablePaymentSchema>

@@ -1,8 +1,8 @@
 # IMPLEMENTATION STATUS — Trạng thái triển khai
 
 **Ngày cập nhật:** 2026-07-15
-**Giai đoạn hiện tại:** Giai đoạn 5 **đã hoàn tất** (Tài chính: Phải thu & Hóa đơn tự động — DB + server + UI); kế tiếp **Giai đoạn 6 — Tài chính: Phải trả & Sổ thu/chi**
-**Nhánh làm việc:** `feat/gd5-phai-thu` (chuẩn bị merge vào `main`)
+**Giai đoạn hiện tại:** Giai đoạn 6 **đã hoàn tất** (Tài chính: Phải trả & Sổ thu/chi — DB + trigger + server + UI); kế tiếp **Giai đoạn 7 — Báo cáo & Dashboard**
+**Nhánh làm việc:** `feat/gd6-phai-tra` (chuẩn bị merge vào `main`)
 
 ---
 
@@ -19,7 +19,8 @@
 | 4B | Điểm danh (`attendance`) | ✅ Xong | migration `0009` áp; RLS attendance PASS; upsert điểm danh trong trang sửa buổi; lịch sử trong chi tiết học sinh |
 | 5A | Tài chính: Phải thu (nền tảng) | ✅ Xong | migration `0010`/`0011`; RLS finance PASS; trigger `amount_paid`/`status` + RPC tổng hợp hóa đơn (chống tính trùng); server queries/actions |
 | 5B | Tài chính: Phải thu (giao diện) | ✅ Xong | nav Tài chính; danh sách + công nợ; chi tiết + ghi thu + hủy; tạo từ buổi (preview) + thủ công |
-| 6–10 | (Phải trả → Phát hành) | ⏳ Chưa | Theo `docs/ROADMAP.md` |
+| 6 | Tài chính: Phải trả & Sổ thu/chi | ✅ Xong | migration `0012`; RLS payables PASS; trigger `recalc_payable_paid`; sub-nav tabs; phải trả (list/tạo/chi tiết/sửa/trả dần); sổ thu/chi + danh mục; hạn thanh toán (gộp 2 chiều) + lịch sử |
+| 7–10 | (Báo cáo → Phát hành) | ⏳ Chưa | Theo `docs/ROADMAP.md` |
 
 ---
 
@@ -86,6 +87,22 @@
 | Trang `/tai-chinh/phai-thu/[id]` (chi tiết + ghi thu + hủy + lịch sử) | ✅ Xong | `PaymentForm`; nút hủy (soft cancel); ẩn form khi đã thu đủ/hủy |
 | Trang `/tai-chinh/phai-thu/moi` (tạo từ buổi + thủ công) | ✅ Xong | Preview buổi qua query param → tạo (RPC); form thủ công nhập tổng |
 
+**Giai đoạn 6 — Tài chính phải trả & sổ thu/chi** (đối chiếu spec `2026-07-15-6-phai-tra-thu-chi-design.md` + plan `2026-07-15-6-phai-tra-thu-chi.md`)
+
+| Hạng mục | Trạng thái | Ghi chú |
+|---|---|---|
+| Migration `0012_payables.sql` (enum `payable_status` + bảng `payables` + FK `transactions.payable_id` + index + trigger + RLS) | ✅ Áp lên DB | FK `payable_id → payables` SET NULL; `category_id → categories` SET NULL |
+| Trigger `recalc_payable_paid` + `trg_transactions_recalc_payable` | ✅ Xong | Gương `recalc_invoice_paid`; thoát sớm khi `payable_id` null → không đụng luồng hóa đơn |
+| Validators `payable.ts` + `transaction.ts` + `category.ts` + `payablePaymentSchema` (payment.ts) + test | ✅ Xong | 9 test PASS |
+| Server read `payables.ts` (list/get/total), `ledger.ts` (listTransactions/listUpcomingDue), `categories.ts` (list) | ✅ Xong | `listTransactions` enrich nhãn nguồn (hóa đơn/khoản trả/danh mục); `listUpcomingDue` gộp 2 chiều |
+| Server write `payables-actions.ts`, `ledger-actions.ts`, `categories-actions.ts` | ✅ Xong | Gate `requireWritable`; không nhận `user_id`; xóa chỉ dòng tự do; hủy payable = soft cancel |
+| Điều hướng: `tai-chinh/layout.tsx` + `finance-tabs.tsx` (sub-nav 6 tab) | ✅ Xong | Nav chính "Tài chính" giữ `/tai-chinh/phai-thu`; tab active theo pathname |
+| UI phải trả: `/phai-tra` (list+công nợ), `/moi`, `/[id]` (ghi trả + hủy), `/[id]/sua` | ✅ Xong | Badge quá hạn dẫn xuất; form dùng chung tạo/sửa |
+| UI sổ thu/chi `/thu-chi` (form nhanh + lọc + xóa dòng tự do) + danh mục `/danh-muc` (CRUD + archive) | ✅ Xong | Danh mục lọc theo `type` ở client |
+| UI hạn thanh toán `/han-thanh-toan` (quá hạn/sắp tới, 2 chiều) + lịch sử `/lich-su` | ✅ Xong | Sắp theo `due_date`; timeline mọi giao dịch |
+| Script test cách ly RLS `scripts/test-rls-payables.mjs` | ✅ PASS | A/B/admin; đọc-ghi-sửa chéo; giả mạo `user_id` 403; admin không đọc |
+| Script test nghiệp vụ `scripts/test-payable-flow.mjs` | ✅ PASS | Trả dần partial→paid→partial; trigger đúng qua INSERT/DELETE; CHECK chặn income gắn payable |
+
 ---
 
 ## 4. Chi tiết Giai đoạn 3A (đối chiếu `docs/superpowers/plans/2026-07-13-3a-bai-hoc.md`)
@@ -102,16 +119,18 @@
 
 ---
 
-## 5. Kiểm thử / chất lượng gần nhất (2026-07-15, sau GĐ5A)
+## 5. Kiểm thử / chất lượng gần nhất (2026-07-15, sau GĐ6)
 
 | Lệnh | Kết quả |
 |---|---|
-| `npm test` | ✅ 42 test PASS (format 6 + student 6 + lesson 3 + document 5 + datetime + session + attendance 4 + **invoice/payment 9**) — 9 file test |
-| `npm run lint` | ✅ 0 error (45 warning trong `scripts/*.mjs`, `server/*/queries.ts`, vô hại, pre-existing) |
-| `npm run build` | ✅ Thành công; route `/tai-chinh/phai-thu` + `/[id]` + `/moi` (kèm nav Tài chính) |
+| `npm test` | ✅ 51 test PASS (42 cũ + **payable/transaction/category 9**) — 12 file test |
+| `npm run lint` | ✅ 0 error (57 warning trong `scripts/*.mjs`, `server/*/*.ts` — unused-destructure/`any`, vô hại, pre-existing) |
+| `npm run build` | ✅ Thành công; thêm route `/tai-chinh/phai-tra` (+`/[id]`, `/[id]/sua`, `/moi`), `/thu-chi`, `/danh-muc`, `/han-thanh-toan`, `/lich-su` |
 | Cách ly RLS `students`/`lessons`/`documents`/`sessions`/`attendance` | ✅ PASS |
 | Cách ly RLS `finance` (`invoices`/`invoice_items`/`transactions`/`categories`) | ✅ PASS |
-| Nghiệp vụ hóa đơn (`test-invoice-flow.mjs`) | ✅ PASS (tổng hợp không trùng; trigger partial→paid→partial) |
+| Cách ly RLS `payables` (`test-rls-payables.mjs`) | ✅ PASS (A/B/admin; giả mạo `user_id` 403) |
+| Nghiệp vụ hóa đơn (`test-invoice-flow.mjs`) | ✅ PASS (không hồi quy; trigger partial→paid→partial) |
+| Nghiệp vụ phải trả (`test-payable-flow.mjs`) | ✅ PASS (trả dần partial→paid→partial; CHECK chặn income gắn payable) |
 
 ---
 
@@ -130,8 +149,9 @@
 | `0009_attendance.sql` | enum `attendance_status` + bảng `attendance` + RLS 4 policy + 2 index + trigger; `UNIQUE(session_id, student_id)`; FK CASCADE |
 | `0010_finance_receivables.sql` | 4 enum + `categories`/`invoices`/`invoice_items`/`transactions` + RLS 4 policy/bảng + index + CHECK |
 | `0011_finance_functions.sql` | trigger `recalc_invoice_paid` (amount_paid/status) + RPC `create_invoice_from_sessions` (tổng hợp atomic) |
+| `0012_payables.sql` | enum `payable_status` + bảng `payables` + FK `transactions.payable_id` + index `(user_id, payable_id)` + trigger `recalc_payable_paid` + RLS 4 policy |
 
-Áp bằng: `node --env-file=.env.local scripts/run-migration.mjs <file.sql>` (cần `SUPABASE_DB_URL` trong `.env.local`).
+Áp bằng: `node --env-file=.env.local scripts/run-migration.mjs supabase/migrations/<file.sql>` (cần `SUPABASE_DB_URL` trong `.env.local`).
 
 ---
 
@@ -152,6 +172,8 @@ node --env-file=.env.local scripts/test-rls-sessions.mjs             # test các
 node --env-file=.env.local scripts/test-rls-attendance.mjs           # test cách ly attendance
 node --env-file=.env.local scripts/test-rls-finance.mjs              # test cách ly tài chính phải thu
 node --env-file=.env.local scripts/test-invoice-flow.mjs             # test nghiệp vụ hóa đơn tự động + trigger
+node --env-file=.env.local scripts/test-rls-payables.mjs            # test cách ly payables (phải trả)
+node --env-file=.env.local scripts/test-payable-flow.mjs           # test nghiệp vụ phải trả + trigger
 ```
 
 ---
@@ -168,5 +190,5 @@ node --env-file=.env.local scripts/test-invoice-flow.mjs             # test nghi
 
 ## 9. Bước kế tiếp
 
-1. **Giai đoạn 5 — Tài chính: Khoản phải thu & Thu học phí**: bảng `categories`/`invoices`/`invoice_items`/`transactions` + RLS; trigger cập nhật `invoices.amount_paid`/`status` từ `transactions`; tổng hợp hóa đơn tự động từ buổi đã hoàn thành (đặt `sessions.is_billed`); UI hóa đơn + ghi thanh toán; test cách ly RLS.
-2. **(Tùy chọn)** Trước GĐ5: cân nhắc merge `feat/gd4b-diem-danh` vào `main`.
+1. **Merge `feat/gd6-phai-tra` vào `main`** (giữ nếp GĐ5 — sau khi mọi kiểm thử xanh).
+2. **Giai đoạn 7 — Báo cáo & Dashboard**: views `v_cashflow_monthly`/`v_receivables_outstanding`/`v_payables_outstanding`/`v_upcoming_sessions` (security_invoker) tôn trọng RLS; trang Báo cáo (thu/chi/lợi nhuận/dòng tiền theo kỳ) + Dashboard tổng quan (thẻ chỉ số, buổi sắp tới, cảnh báo quá hạn, biểu đồ dòng tiền 6 tháng). Phụ thuộc GĐ5 + GĐ6.
