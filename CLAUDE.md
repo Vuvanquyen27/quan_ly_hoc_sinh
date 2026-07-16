@@ -20,10 +20,10 @@ Bối cảnh: **Việt Nam**. Giao diện **tiếng Việt**, tiền tệ **VND*
 
 | Mục | Trạng thái |
 |---|---|
-| Giai đoạn | **Giai đoạn 8 đã hoàn tất** (Cài đặt & Thông báo); kế tiếp **Giai đoạn 9 — Khu vực ADMIN** |
-| Đã có | GĐ0–8: Next.js App Router + TS + Tailwind + shadcn/ui; Supabase (3 client + RLS + Storage); Auth/hồ sơ; CRUD học sinh/bài học/tài liệu/lịch buổi/điểm danh; Tài chính (phải thu + phải trả + sổ thu/chi + hạn thanh toán); Báo cáo + Dashboard; Cài đặt (hồ sơ+avatar+tùy chọn) + Thông báo in-app; migrations `0001`→`0015` đã áp |
-| Chưa có | GĐ9 khu ADMIN; GĐ10 hoàn thiện & phát hành |
-| Việc kế tiếp | Merge `feat/gd8-cai-dat` vào `main`, rồi triển khai GĐ9 (xem `docs/IMPLEMENTATION_STATUS.md §9`) |
+| Giai đoạn | **Giai đoạn 9 đã code xong** (Khu vực ADMIN — DB+server+UI+test); **migration `0016` + test RLS admin CHƯA áp/chạy trên Supabase thật**; kế tiếp **Giai đoạn 10 — Kiểm thử bảo mật & Phát hành** |
+| Đã có | GĐ0–8 (đã áp DB): Next.js App Router + TS + Tailwind + shadcn/ui; Supabase (3 client + RLS + Storage); Auth/hồ sơ; CRUD học sinh/bài học/tài liệu/lịch buổi/điểm danh; Tài chính (phải thu + phải trả + sổ thu/chi + hạn thanh toán); Báo cáo + Dashboard; Cài đặt + Thông báo; migrations `0001`→`0015` đã áp. **GĐ9 (code, build+lint+test PASS):** khu `app/admin` riêng, `assertAdmin`/`writeAudit`, quản lý tài khoản/thuê bao/gói + audit + thống kê; migration `0016` |
+| Chưa có | Áp `0016` + chạy `test-rls-admin.mjs` trên Supabase; GĐ10 hoàn thiện & phát hành |
+| Việc kế tiếp | Đóng GĐ9: áp `0016`, `set-admin.mjs`, chạy `test-rls-admin.mjs` (xem `docs/IMPLEMENTATION_STATUS.md §9`) |
 
 ---
 
