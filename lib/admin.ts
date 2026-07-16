@@ -34,11 +34,16 @@ export async function writeAudit(entry: {
   metadata?: Record<string, unknown>
 }): Promise<void> {
   const admin = createAdminSupabase()
-  await admin.from('admin_audit_logs').insert({
+  const { error } = await admin.from('admin_audit_logs').insert({
     actor_id: entry.actorId,
     action: entry.action,
     target_user_id: entry.targetUserId ?? null,
     target_subscription_id: entry.targetSubscriptionId ?? null,
     metadata: entry.metadata ?? {},
   })
+  // Audit là BẮT BUỘC — không nuốt lỗi âm thầm. Ghi log server để phát hiện & điều tra.
+  // (Nguyên tử hóa mutation + audit bằng RPC là việc GĐ10 — xem docs/IMPLEMENTATION_STATUS.md.)
+  if (error) {
+    console.error(`[admin-audit] Ghi nhật ký "${entry.action}" thất bại:`, error.message)
+  }
 }

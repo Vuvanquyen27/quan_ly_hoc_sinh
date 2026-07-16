@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { redirect } from 'next/navigation'
 import { assertAdmin, writeAudit } from '@/lib/admin'
 import { createAdminSupabase } from '@/lib/supabase/admin'
 import { activateSchema, renewSchema, changePlanSchema } from '@/lib/validators/admin'
@@ -15,13 +16,18 @@ function isoAtVnMidnight(dateStr: string): string {
   return new Date(dateStr + 'T00:00:00+07:00').toISOString()
 }
 
-/** Cộng một chu kỳ (tháng/năm) vào ngày lịch 'YYYY-MM-DD'. */
+/**
+ * Cộng một chu kỳ (tháng/năm) vào ngày lịch 'YYYY-MM-DD', KẸP ngày về cuối tháng
+ * đích để tránh tràn (vd 31/01 + 1 tháng → 28/02, không phải 03/03).
+ */
 function addCycleDate(dateStr: string, cycle: string): string {
   const [y, m, d] = dateStr.split('-').map(Number)
-  const base = new Date(Date.UTC(y, m - 1, d))
-  if (cycle === 'yearly') base.setUTCFullYear(base.getUTCFullYear() + 1)
-  else base.setUTCMonth(base.getUTCMonth() + 1)
-  return base.toISOString().slice(0, 10)
+  const zeroBased = m - 1 + (cycle === 'yearly' ? 12 : 1)
+  const year = y + Math.floor(zeroBased / 12)
+  const month = zeroBased % 12 // 0-based
+  const lastDay = new Date(Date.UTC(year, month + 1, 0)).getUTCDate() // ngày cuối tháng đích
+  const day = Math.min(d, lastDay)
+  return new Date(Date.UTC(year, month, day)).toISOString().slice(0, 10)
 }
 
 /** Ngày lịch VN 'YYYY-MM-DD' của một timestamptz. */
@@ -30,7 +36,13 @@ function vnDateOf(iso: string): string {
 }
 
 type PlanRow = { id: string; billing_cycle: string; price: number }
-type SubRow = { id: string; status: string; expires_at: string | null; started_at: string | null }
+type SubRow = {
+  id: string
+  status: string
+  expires_at: string | null
+  started_at: string | null
+  trial_ends_at: string | null
+}
 
 async function loadPlanAndSub(
   admin: ReturnType<typeof createAdminSupabase>,
@@ -39,7 +51,7 @@ async function loadPlanAndSub(
 ): Promise<{ plan: PlanRow; sub: SubRow } | { error: string }> {
   const [{ data: plan }, { data: sub }] = await Promise.all([
     admin.from('plans').select('id,billing_cycle,price').eq('id', planId).maybeSingle(),
-    admin.from('subscriptions').select('id,status,expires_at,started_at').eq('user_id', userId).maybeSingle(),
+    admin.from('subscriptions').select('id,status,expires_at,started_at,trial_ends_at').eq('user_id', userId).maybeSingle(),
   ])
   if (!plan) return { error: 'Không tìm thấy gói.' }
   if (!sub) return { error: 'Tài khoản chưa có bản ghi thuê bao.' }
@@ -120,9 +132,9 @@ export async function confirmPaymentAndActivate(
     metadata: { plan_id: plan.id, amount: d.amount, method: d.method, period_start: startDate, period_end: endDate },
   })
 
-  revalidatePath(`/admin/tai-khoan/${userId}`)
   revalidatePath('/admin/tai-khoan')
-  return null
+  // Redirect để form remount với dữ liệu thuê bao mới (tránh state cũ trong panel).
+  redirect(`/admin/tai-khoan/${userId}`)
 }
 
 /**
@@ -152,9 +164,16 @@ export async function renewSubscription(
   if ('error' in loaded) return loaded
   const { plan, sub } = loaded
 
+  // Neo từ hạn hiện tại nếu còn hạn; nếu đang trial còn hạn thì neo từ hết hạn trial;
+  // ngược lại từ hôm nay. Tránh gia hạn tài khoản trial làm mất phần trial còn lại.
   const nowMs = Date.now()
-  const stillValid = sub.expires_at && new Date(sub.expires_at).getTime() > nowMs
-  const startDate = stillValid ? vnDateOf(sub.expires_at as string) : todayVnDate()
+  const validUntil =
+    sub.expires_at && new Date(sub.expires_at).getTime() > nowMs
+      ? sub.expires_at
+      : sub.status === 'trialing' && sub.trial_ends_at && new Date(sub.trial_ends_at).getTime() > nowMs
+        ? sub.trial_ends_at
+        : null
+  const startDate = validUntil ? vnDateOf(validUntil) : todayVnDate()
   const endDate = addCycleDate(startDate, plan.billing_cycle)
   const periodStartIso = isoAtVnMidnight(startDate)
   const periodEndIso = isoAtVnMidnight(endDate)
@@ -200,9 +219,9 @@ export async function renewSubscription(
     metadata: { plan_id: plan.id, amount: d.amount, method: d.method, period_start: startDate, period_end: endDate },
   })
 
-  revalidatePath(`/admin/tai-khoan/${userId}`)
   revalidatePath('/admin/tai-khoan')
-  return null
+  // Redirect để form remount với hạn thuê bao mới (tránh state cũ trong panel).
+  redirect(`/admin/tai-khoan/${userId}`)
 }
 
 /** ĐỔI GÓI (không phát sinh thanh toán): đổi plan_id + billing_cycle; audit change_plan. */
@@ -231,6 +250,7 @@ export async function changePlan(formData: FormData): Promise<void> {
     metadata: { plan_id: plan.id, billing_cycle: plan.billing_cycle },
   })
   revalidatePath(`/admin/tai-khoan/${userId}`)
+  revalidatePath('/admin/tai-khoan')
 }
 
 /** HỦY THUÊ BAO: status='cancelled', cancelled_at=now; audit cancel_subscription. */

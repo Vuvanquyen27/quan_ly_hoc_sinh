@@ -19,8 +19,9 @@ export async function lockAccount(formData: FormData): Promise<void> {
   if (!userId) return
 
   const admin = createAdminSupabase()
-  const { error } = await admin.from('profiles').update({ is_locked: true }).eq('id', userId)
-  if (error) return
+  // .select('id') để biết có đúng 1 hàng bị đổi — không ghi audit "ma" khi userId sai.
+  const { data, error } = await admin.from('profiles').update({ is_locked: true }).eq('id', userId).select('id')
+  if (error || !data || data.length === 0) return
   await writeAudit({ actorId: actor.id, action: 'lock_account', targetUserId: userId })
   revalidateAccount(userId)
 }
@@ -32,8 +33,8 @@ export async function unlockAccount(formData: FormData): Promise<void> {
   if (!userId) return
 
   const admin = createAdminSupabase()
-  const { error } = await admin.from('profiles').update({ is_locked: false }).eq('id', userId)
-  if (error) return
+  const { data, error } = await admin.from('profiles').update({ is_locked: false }).eq('id', userId).select('id')
+  if (error || !data || data.length === 0) return
   await writeAudit({ actorId: actor.id, action: 'unlock_account', targetUserId: userId })
   revalidateAccount(userId)
 }
@@ -55,14 +56,16 @@ export async function updateAccount(
   const d = parsed.data
 
   const admin = createAdminSupabase()
-  const { error } = await admin
+  const { data, error } = await admin
     .from('profiles')
     .update({
       full_name: (d.fullName ?? '').trim() || null,
       phone: (d.phone ?? '').trim() || null,
     })
     .eq('id', userId)
+    .select('id')
   if (error) return { error: 'Không lưu được thông tin tài khoản.' }
+  if (!data || data.length === 0) return { error: 'Không tìm thấy tài khoản.' }
 
   await writeAudit({
     actorId: actor.id,

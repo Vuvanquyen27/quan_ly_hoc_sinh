@@ -234,18 +234,24 @@ export async function getPlatformStats(): Promise<PlatformStats> {
   const admin = createAdminSupabase()
   const thirtyAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
 
-  const [{ count: totalUsers }, { data: subs }, { count: lockedCount }, { count: newLast30Days }] =
+  const statuses = ['trialing', 'active', 'past_due', 'expired', 'cancelled'] as const
+
+  // Đếm bằng count SQL (head:true) cho từng trạng thái — tránh cap 1000 dòng mặc định của
+  // PostgREST khi tally trong JS (sẽ đếm thiếu khi >1000 thuê bao).
+  const [{ count: totalUsers }, { count: lockedCount }, { count: newLast30Days }, ...byStatusRes] =
     await Promise.all([
       admin.from('profiles').select('id', { count: 'exact', head: true }),
-      admin.from('subscriptions').select('status'),
       admin.from('profiles').select('id', { count: 'exact', head: true }).eq('is_locked', true),
       admin.from('profiles').select('id', { count: 'exact', head: true }).gte('created_at', thirtyAgo),
+      ...statuses.map((s) =>
+        admin.from('subscriptions').select('id', { count: 'exact', head: true }).eq('status', s),
+      ),
     ])
 
   const byStatus: Record<string, number> = {}
-  for (const s of (subs as { status: string }[] | null) ?? []) {
-    byStatus[s.status] = (byStatus[s.status] ?? 0) + 1
-  }
+  statuses.forEach((s, i) => {
+    byStatus[s] = byStatusRes[i]?.count ?? 0
+  })
 
   return {
     totalUsers: totalUsers ?? 0,

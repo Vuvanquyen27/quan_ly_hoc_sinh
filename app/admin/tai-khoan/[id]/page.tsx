@@ -11,7 +11,7 @@ import {
 } from '@/lib/validators/admin'
 import { formatVND, formatDate, formatDateTime } from '@/lib/format'
 import { todayVnDate } from '@/lib/datetime'
-import { Button } from '@/components/ui/button'
+import { SubmitButton } from '@/components/admin/submit-button'
 import AccountEditForm from '@/components/admin/account-edit-form'
 import SubscriptionPanel from '@/components/admin/subscription-panel'
 
@@ -64,12 +64,12 @@ export default async function AccountDetailPage({ params }: { params: Promise<{ 
         {account.is_locked ? (
           <form action={unlockAccount}>
             <input type="hidden" name="userId" value={account.id} />
-            <Button type="submit" variant="success">Mở khóa</Button>
+            <SubmitButton variant="success" pendingText="Đang mở…">Mở khóa</SubmitButton>
           </form>
         ) : (
           <form action={lockAccount}>
             <input type="hidden" name="userId" value={account.id} />
-            <Button type="submit" variant="destructive">Khóa tài khoản</Button>
+            <SubmitButton variant="destructive" pendingText="Đang khóa…">Khóa tài khoản</SubmitButton>
           </form>
         )}
       </section>

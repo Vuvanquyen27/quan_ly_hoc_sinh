@@ -16,6 +16,7 @@ import {
 import { formatVND } from '@/lib/format'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { SubmitButton } from '@/components/admin/submit-button'
 
 const selectClass =
   'flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/40'
@@ -198,7 +199,7 @@ export default function SubscriptionPanel({
                 <option key={p.id} value={p.id}>{planLabel(p)}</option>
               ))}
             </select>
-            <Button type="submit" variant="outline" className="shrink-0">Đổi gói</Button>
+            <SubmitButton variant="outline" className="shrink-0" pendingText="Đang đổi…">Đổi gói</SubmitButton>
           </form>
         </div>
 
@@ -211,9 +212,9 @@ export default function SubscriptionPanel({
             }}
           >
             <input type="hidden" name="userId" value={userId} />
-            <Button type="submit" variant="destructive" disabled={isCancelled}>
+            <SubmitButton variant="destructive" disabled={isCancelled} pendingText="Đang hủy…">
               {isCancelled ? 'Đã hủy' : 'Hủy thuê bao'}
-            </Button>
+            </SubmitButton>
           </form>
         </div>
       </div>

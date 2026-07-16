@@ -68,7 +68,7 @@ export const activateSchema = z.object({
   planId: z.string().uuid('Chưa chọn gói hợp lệ'),
   method: methodEnum,
   amount: z.coerce.number().int('Số tiền phải là số nguyên').min(0, 'Số tiền không được âm'),
-  periodStart: z.string().min(1, 'Chưa chọn ngày bắt đầu'),
+  periodStart: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Ngày bắt đầu không hợp lệ (yyyy-mm-dd)'),
   reference: z.string().optional(),
   note: z.string().optional(),
 })

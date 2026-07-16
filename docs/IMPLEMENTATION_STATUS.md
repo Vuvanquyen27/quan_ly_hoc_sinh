@@ -152,6 +152,27 @@
 | UI `/admin/goi` (+`/moi` +`/[id]/sua`) + `/admin/nhat-ky` (lọc action + phân trang) | ✅ Xong | Dùng chung `PlanForm`; nhật ký hiển thị email + metadata |
 | Script `scripts/test-rls-admin.mjs` | 🧩 Viết xong, **chưa chạy** | USER không đọc/ghi `admin_audit_logs`; cách ly `subscription_payments`; ADMIN không đọc `students`; USER không tự kích hoạt thuê bao |
 
+**Review GĐ9 (6 góc, max effort) — kết luận: KHÔNG có lỗ hổng cách ly P0; schema khớp tài liệu.** Đã sửa các bug/điểm cứng hóa sau (build+lint+test lại xanh):
+
+| Đã sửa | Chi tiết |
+|---|---|
+| `addCycleDate` tràn biên tháng | Kẹp về ngày cuối tháng đích (31/01 +1th → 28/02, không phải 03/03). Kiểm chứng Node mọi ca 29–31 + năm nhuận |
+| `periodStart` chưa validate ngày | Thêm regex `yyyy-mm-dd` → không còn `RangeError` khi input xấu |
+| `writeAudit` nuốt lỗi | Kiểm `error` + `console.error` (audit bắt buộc — không im lặng) |
+| Audit "ma" khi `userId` sai | lock/unlock/updateAccount dùng `.select('id')` — chỉ audit khi thực sự đổi 1 hàng |
+| State panel cũ sau kích hoạt/gia hạn | activate/renew `redirect` về trang chi tiết → form remount dữ liệu mới |
+| `changePlan` thiếu revalidate list | Thêm `revalidatePath('/admin/tai-khoan')` |
+| Thống kê sai khi >1000 thuê bao | `getPlatformStats` đếm bằng `count` SQL từng trạng thái (không tally JS bị cap 1000) |
+| Double-click void action → double audit | `SubmitButton` (`useFormStatus`) vô hiệu khi đang gửi cho khóa/mở/đổi/hủy |
+| Gia hạn tài khoản trial | Neo từ `trial_ends_at` nếu trial còn hạn (không mất phần trial) |
+
+**Hoãn sang GĐ10 (đã ghi nhận, không chặn merge):**
+- **Nguyên tử hóa** kích hoạt/gia hạn (insert payment + update subscription) bằng **RPC Postgres** như `0011` — tránh payment "confirmed" mồ côi nếu update lỗi giữa chừng.
+- **Đọc bằng client đã xác thực** (JWT admin) để RLS `is_admin()` là lưới an toàn, thay vì service_role bỏ qua RLS cho các hàm ĐỌC (khớp PERMISSIONS.md §5.4). *Chưa đổi trong phiên này vì không có Supabase thật để kiểm chứng đường đọc qua RLS.*
+- `listAccounts` chuyển sang **view/RPC lọc+phân trang ở CSDL** khi >1000 tài khoản (hiện full-scan + cắt trang JS).
+- Đưa điều kiện `is_locked`/hết hạn vào **RLS** (PERMISSIONS §6) — hiện chặn ở tầng app.
+- Dọn trùng lặp (helper ngày VN vs `lib/datetime.ts`, khối phân trang, `SUB_STATUS_LABEL` vs `cai-dat`).
+
 ---
 
 ## 4. Chi tiết Giai đoạn 3A (đối chiếu `docs/superpowers/plans/2026-07-13-3a-bai-hoc.md`)
