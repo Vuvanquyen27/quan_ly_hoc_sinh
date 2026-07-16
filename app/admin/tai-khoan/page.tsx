@@ -1,0 +1,163 @@
+import type { Metadata } from 'next'
+import { Suspense } from 'react'
+import Link from 'next/link'
+import { listAccounts } from '@/server/admin/queries'
+import { SUB_STATUS_LABEL } from '@/lib/validators/admin'
+import { formatDate } from '@/lib/format'
+import { Button } from '@/components/ui/button'
+import { ListResultsSkeleton } from '@/components/ui/skeletons'
+
+export const metadata: Metadata = { title: 'Tài khoản — Admin EduFlow' }
+
+const inputClass =
+  'h-9 rounded-md border border-input bg-card px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring/40'
+
+const SUB_STATUSES = ['trialing', 'active', 'past_due', 'expired', 'cancelled'] as const
+
+type AccountsSearchParams = { q?: string; status?: string; page?: string }
+
+export default async function AdminAccountsPage({
+  searchParams,
+}: {
+  searchParams: Promise<AccountsSearchParams>
+}) {
+  const sp = await searchParams
+
+  return (
+    <div className="space-y-6">
+      <h1 className="text-2xl font-semibold tracking-tight text-foreground">Tài khoản</h1>
+
+      <form className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+        <input
+          name="q"
+          defaultValue={sp.q ?? ''}
+          placeholder="Tìm theo email hoặc tên…"
+          className={inputClass + ' w-full sm:w-auto sm:min-w-64'}
+        />
+        <select name="status" defaultValue={sp.status ?? ''} className={inputClass}>
+          <option value="">Tất cả trạng thái</option>
+          {SUB_STATUSES.map((s) => (
+            <option key={s} value={s}>{SUB_STATUS_LABEL[s]}</option>
+          ))}
+        </select>
+        <Button type="submit" variant="outline">Lọc</Button>
+      </form>
+
+      <Suspense key={JSON.stringify(sp)} fallback={<ListResultsSkeleton />}>
+        <AccountResults sp={sp} />
+      </Suspense>
+    </div>
+  )
+}
+
+async function AccountResults({ sp }: { sp: AccountsSearchParams }) {
+  const page = Math.max(1, Number(sp.page) || 1)
+  const { rows, total, pageSize } = await listAccounts({ search: sp.q, status: sp.status, page })
+  const totalPages = Math.max(1, Math.ceil(total / pageSize))
+
+  const buildHref = (p: number) => {
+    const params = new URLSearchParams()
+    if (sp.q) params.set('q', sp.q)
+    if (sp.status) params.set('status', sp.status)
+    if (p > 1) params.set('page', String(p))
+    const qs = params.toString()
+    return qs ? `/admin/tai-khoan?${qs}` : '/admin/tai-khoan'
+  }
+
+  return (
+    <div className="space-y-6">
+      <p className="text-sm text-muted-foreground">{total} tài khoản</p>
+
+      {rows.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-border bg-card p-12 text-center">
+          <p className="text-muted-foreground">Không có tài khoản nào khớp.</p>
+        </div>
+      ) : (
+        <>
+          {/* Bảng — từ md trở lên */}
+          <div className="hidden overflow-x-auto rounded-2xl border border-border bg-card md:block">
+            <table className="w-full text-left text-sm">
+              <thead className="border-b border-border text-xs uppercase tracking-wide text-muted-foreground">
+                <tr>
+                  <th className="px-4 py-3">Email</th>
+                  <th className="px-4 py-3">Họ tên</th>
+                  <th className="px-4 py-3">Thuê bao</th>
+                  <th className="px-4 py-3">Gói</th>
+                  <th className="px-4 py-3">Ngày tạo</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((a) => (
+                  <tr key={a.id} className="border-t border-border hover:bg-muted">
+                    <td className="px-4 py-3">
+                      <Link href={`/admin/tai-khoan/${a.id}`} className="font-medium text-foreground hover:underline">
+                        {a.email ?? '—'}
+                      </Link>
+                      {a.is_locked && (
+                        <span className="ml-2 rounded-full bg-destructive/10 px-2 py-0.5 text-xs text-destructive">
+                          Bị khóa
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">{a.full_name ?? '—'}</td>
+                    <td className="px-4 py-3">
+                      <span className="rounded-full bg-secondary px-2.5 py-0.5 text-xs text-secondary-foreground">
+                        {a.sub ? SUB_STATUS_LABEL[a.sub.status] ?? a.sub.status : '—'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">{a.sub?.plan_name ?? '—'}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{formatDate(a.created_at)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Card — điện thoại */}
+          <ul className="space-y-3 md:hidden">
+            {rows.map((a) => (
+              <li key={a.id}>
+                <Link href={`/admin/tai-khoan/${a.id}`} className="block rounded-2xl border border-border bg-card p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <span className="font-medium text-foreground">{a.email ?? '—'}</span>
+                    <span className="shrink-0 rounded-full bg-secondary px-2.5 py-0.5 text-xs text-secondary-foreground">
+                      {a.sub ? SUB_STATUS_LABEL[a.sub.status] ?? a.sub.status : '—'}
+                    </span>
+                  </div>
+                  <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-sm text-muted-foreground">
+                    <div><dt className="inline">Tên: </dt><dd className="inline">{a.full_name ?? '—'}</dd></div>
+                    <div><dt className="inline">Gói: </dt><dd className="inline">{a.sub?.plan_name ?? '—'}</dd></div>
+                    <div className="col-span-2"><dt className="inline">Tạo: </dt><dd className="inline">{formatDate(a.created_at)}</dd></div>
+                  </dl>
+                  {a.is_locked && (
+                    <span className="mt-2 inline-block rounded-full bg-destructive/10 px-2 py-0.5 text-xs text-destructive">
+                      Bị khóa
+                    </span>
+                  )}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between gap-4 text-sm">
+          <span className="text-muted-foreground">Trang {page}/{totalPages}</span>
+          <div className="flex items-center gap-2">
+            {page > 1 ? (
+              <Link href={buildHref(page - 1)} className="rounded-lg border border-border px-3 py-1.5 hover:bg-muted">← Trước</Link>
+            ) : (
+              <span className="rounded-lg border border-border px-3 py-1.5 opacity-50">← Trước</span>
+            )}
+            {page < totalPages ? (
+              <Link href={buildHref(page + 1)} className="rounded-lg border border-border px-3 py-1.5 hover:bg-muted">Sau →</Link>
+            ) : (
+              <span className="rounded-lg border border-border px-3 py-1.5 opacity-50">Sau →</span>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
