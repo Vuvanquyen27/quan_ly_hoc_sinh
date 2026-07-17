@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Lint · Test · Build · Quét bí mật
+    runs-on: ubuntu-latest
+    env:
+      # Giá trị GIẢ để build được trong CI. App Router: các trang dữ liệu là dynamic
+      # (đọc cookie phiên) nên KHÔNG gọi Supabase lúc build → placeholder là đủ.
+      NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-anon-key-for-build-only
+      NEXT_PUBLIC_SITE_URL: http://localhost:3000
+      # Sentinel (KHÔNG bí mật): nếu chuỗi này lọt vào bundle client thì bước quét sẽ bắt được.
+      SUPABASE_SERVICE_ROLE_KEY: ci-sentinel-service-role-key-must-not-leak-1234567890
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: Unit test
+        run: npm test
+      - name: Build
+        run: npm run build
+      - name: Quét rò rỉ bí mật trong bundle client (.next/static)
+        run: node scripts/check-bundle-secrets.mjs
+
+  rls:
+    name: Kiểm thử cách ly RLS (chạy khi có secrets)
+    runs-on: ubuntu-latest
+    # Nên trỏ vào một project Supabase TEST/STAGING (không phải production):
+    # test tạo & xóa user + dữ liệu tạm. Thêm secrets ở repo Settings → Secrets:
+    #   SUPABASE_TEST_URL · SUPABASE_TEST_ANON_KEY · SUPABASE_TEST_SERVICE_ROLE_KEY
+    # (Yêu cầu schema đã áp đủ migration 0001→0016 trên project đó.)
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_TEST_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_TEST_ANON_KEY }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_TEST_SERVICE_ROLE_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - name: Chạy toàn bộ test cách ly RLS (fail nếu bất kỳ ca nào rò rỉ)
+        run: |
+          if [ -z "$SUPABASE_SERVICE_ROLE_KEY" ] || [ -z "$NEXT_PUBLIC_SUPABASE_URL" ]; then
+            echo "⚠️  Chưa cấu hình secrets RLS (SUPABASE_TEST_*) → bỏ qua cổng chặn RLS."
+            echo "    Thêm secrets để bật. Nên dùng project TEST, không phải production."
+            exit 0
+          fi
+          set -e
+          for f in scripts/test-rls-*.mjs scripts/test-invoice-flow.mjs scripts/test-payable-flow.mjs scripts/test-report-values.mjs; do
+            echo "▶ $f"
+            node "$f"
+          done
+          echo "✅ Toàn bộ test cách ly RLS PASS."

@@ -23,7 +23,7 @@
 | 7 | Báo cáo & Dashboard | ✅ Xong | migration `0013` (4 view `security_invoker`, gom tháng giờ VN); RLS view PASS + đối chiếu số liệu PASS; `/bao-cao` (kỳ + tổng + biểu đồ CSS/SVG + công nợ + quá hạn); `/tong-quan` chỉ số thật + buổi sắp tới + cảnh báo + biểu đồ 6 tháng; nav "Báo cáo" |
 | 8 | Cài đặt & Thông báo | ✅ Xong | migration `0014` (notifications+RLS) `0015` (bucket avatars public); RLS notifications+avatars PASS; `/cai-dat` (hồ sơ+avatar+tùy chọn+gói); `/thong-bao` + chuông header; nút "Tạo nhắc nhở" (dedup, gate prefs); cài đặt lưu, hiển thị VN cố định MVP |
 | 9 | Khu vực ADMIN | 🧩 Code xong (chưa áp DB) | migration `0016` (subscription_payments + admin_audit_logs + 3 enum + RLS); `assertAdmin()`+`writeAudit()`; `app/admin` layout+nav riêng; quản lý tài khoản (khóa/mở/sửa), thuê bao (kích hoạt/gia hạn/đổi/hủy + subscription_payments), gói (CRUD), thống kê, nhật ký; script `set-admin` + `test-rls-admin`. **Build+lint+unit PASS**; **migration+RLS test chờ chạy trên Supabase** |
-| 10 | Kiểm thử bảo mật & Phát hành | ⏳ Chưa | Theo `docs/ROADMAP.md` |
+| 10 | Kiểm thử bảo mật & Phát hành | 🚧 Đang làm | **Phần code (không cần Supabase) đã xong + verify:** CI `.github/workflows/ci.yml` (quality: lint+test+build+quét bí mật; rls: test cách ly khi có secrets); security headers `next.config.ts`; `scripts/check-bundle-secrets.mjs` (bundle SẠCH 39 tệp). **Còn:** chạy test RLS trên Supabase thật, `listAccounts`→RPC, SMTP, landing, deploy |
 
 ---
 

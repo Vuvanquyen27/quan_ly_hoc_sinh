@@ -28,8 +28,8 @@ Mục tiêu **0 rò rỉ dữ liệu chéo** (PERMISSIONS §8). Chạy TẤT C�
 
 - [ ] 🚫 👤 `test-rls-students / lessons / documents / sessions / attendance / finance / payables / report-views / notifications / admin` — tất cả PASS.
 - [ ] 🚫 🤝 Bổ sung ca còn thiếu theo PERMISSIONS §8: **(4)** USER thường gọi `/admin/**` → 403 ở **server** (không chỉ middleware); **(5)** USER cố set `app_metadata.role=admin` → thất bại; **(7)** tài khoản `expired`/`cancelled` → chặn mọi thao tác GHI.
-- [ ] 🤖 Gom toàn bộ test RLS vào **CI** (`.github/workflows/`) — fail CI nếu bất kỳ ca nào rò rỉ. Chạy mỗi PR.
-- [ ] 🤖 Xác nhận **build không lộ `service_role`**: quét `.next/static` sau build → rỗng (đã có trong quy trình).
+- [x] 🤖 Gom toàn bộ test RLS vào **CI** (`.github/workflows/ci.yml`) — job `rls` chạy mọi `test-rls-*` + nghiệp vụ, fail CI nếu rò rỉ. ⚠️ Cần secrets `SUPABASE_TEST_*` (project TEST) để bật; tự bỏ qua khi thiếu.
+- [x] 🤖 Xác nhận **build không lộ `service_role`**: `scripts/check-bundle-secrets.mjs` quét `.next/static` (khớp cả giá trị lẫn tên biến) → chạy 39 tệp SẠCH; đã gắn vào job `quality` mỗi PR.
 
 ## 3. Rà responsive & trạng thái UI (GĐ10 Task 2)
 
@@ -46,7 +46,7 @@ Mục tiêu **0 rò rỉ dữ liệu chéo** (PERMISSIONS §8). Chạy TẤT C�
 ## 5. 🚫 Bảo mật cuối (GĐ10 Task 4)
 
 - [ ] 🚫 🤖 Xác nhận **toàn bộ checklist `CLAUDE.md §5`** đạt (RLS mọi bảng, service_role chỉ server, role ở `app_metadata`…).
-- [ ] 🤖 Thêm **security headers** cơ bản (CSP tối thiểu, `X-Frame-Options`, `Referrer-Policy`…).
+- [x] 🤖 Thêm **security headers** cơ bản trong `next.config.ts` (CSP tối thiểu + `X-Frame-Options: DENY` + `X-Content-Type-Options` + `Referrer-Policy` + `Permissions-Policy` + HSTS) — xác minh phát đúng qua `next start`. *(CSP còn `'unsafe-inline'/'unsafe-eval'` cho script — TODO nâng cấp nonce sau MVP.)*
 - [ ] 🤖 (Hardening từ review GĐ9) Đọc khu admin qua **client đã xác thực (RLS `is_admin`)** thay vì service_role; **nguyên tử hóa** kích hoạt/gia hạn bằng **RPC Postgres** (tránh payment "confirmed" mồ côi).
 - [ ] 🤝 Rà lại **RLS đã bật đúng** trên mọi bảng ở dashboard Supabase.
 
