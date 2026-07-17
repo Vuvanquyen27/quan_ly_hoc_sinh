@@ -16,10 +16,10 @@
 
 ## 1. Đóng Giai đoạn 9 (ADMIN) — trên Supabase thật
 
-- [ ] 🚫 👤 Áp migration: `node --env-file=.env.local scripts/run-migration.mjs supabase/migrations/0016_admin_subscriptions.sql`
-- [ ] 🚫 👤 Chạy test cách ly admin XANH: `node --env-file=.env.local scripts/test-rls-admin.mjs`
-- [ ] 👤 Seed gói: `node --env-file=.env.local scripts/seed-plans.mjs`
-- [ ] 👤 Cấp admin đầu tiên: `node --env-file=.env.local scripts/set-admin.mjs <email-của-bạn>` → đăng xuất/đăng nhập lại.
+- [x] 🚫 👤 Áp migration `0016` — **đã áp Supabase** (2026-07-17).
+- [x] 🚫 👤 Chạy test cách ly admin XANH — **`test-rls-admin` PASS 9/9** (2026-07-17).
+- [x] 👤 Seed gói — **đã seed 2 gói Pro** (`pro_monthly` 99.000₫ · `pro_yearly` 990.000₫).
+- [ ] 👤 Cấp admin đầu tiên: đăng ký tài khoản → `node --env-file=.env.local scripts/set-admin.mjs <email-đã-đăng-ký>` → đăng xuất/đăng nhập lại. *(email `vuvanquyen655@gmail.com` chưa có tài khoản — cần đăng ký trước.)*
 - [ ] 🤝 Smoke test khu admin: `/admin` (thống kê) → tạo/sửa gói → vào 1 tài khoản → kích hoạt/gia hạn/khóa/mở → xem `/admin/nhat-ky` (audit đủ dòng).
 
 ## 2. 🚫 Kiểm thử phân quyền toàn diện (GĐ10 Task 1) — CỔNG CHẶN PHÁT HÀNH

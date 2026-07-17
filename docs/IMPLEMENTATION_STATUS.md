@@ -1,7 +1,7 @@
 # IMPLEMENTATION STATUS — Trạng thái triển khai
 
 **Ngày cập nhật:** 2026-07-16
-**Giai đoạn hiện tại:** Giai đoạn 9 **đã code xong** (Khu vực ADMIN — DB + server + UI + test RLS); **migration `0016` + test RLS admin CHƯA áp/chạy trên Supabase thật** (chờ `.env.local`); kế tiếp **Giai đoạn 10 — Kiểm thử bảo mật & Phát hành**
+**Giai đoạn hiện tại:** Giai đoạn 9 **gần đóng** — migration `0016` đã áp Supabase thật, `test-rls-admin` **PASS 9/9**, đã seed 2 gói Pro; **còn:** cấp admin đầu tiên (chờ tài khoản đăng ký) + smoke test `/admin`. **Giai đoạn 10 đã khởi động:** CI + security headers + quét bí mật bundle
 **Nhánh làm việc:** `claude/codebase-review-guidance-jac3k3`
 
 ---
@@ -22,7 +22,7 @@
 | 6 | Tài chính: Phải trả & Sổ thu/chi | ✅ Xong | migration `0012`; RLS payables PASS; trigger `recalc_payable_paid`; sub-nav tabs; phải trả (list/tạo/chi tiết/sửa/trả dần); sổ thu/chi + danh mục; hạn thanh toán (gộp 2 chiều) + lịch sử |
 | 7 | Báo cáo & Dashboard | ✅ Xong | migration `0013` (4 view `security_invoker`, gom tháng giờ VN); RLS view PASS + đối chiếu số liệu PASS; `/bao-cao` (kỳ + tổng + biểu đồ CSS/SVG + công nợ + quá hạn); `/tong-quan` chỉ số thật + buổi sắp tới + cảnh báo + biểu đồ 6 tháng; nav "Báo cáo" |
 | 8 | Cài đặt & Thông báo | ✅ Xong | migration `0014` (notifications+RLS) `0015` (bucket avatars public); RLS notifications+avatars PASS; `/cai-dat` (hồ sơ+avatar+tùy chọn+gói); `/thong-bao` + chuông header; nút "Tạo nhắc nhở" (dedup, gate prefs); cài đặt lưu, hiển thị VN cố định MVP |
-| 9 | Khu vực ADMIN | 🧩 Code xong (chưa áp DB) | migration `0016` (subscription_payments + admin_audit_logs + 3 enum + RLS); `assertAdmin()`+`writeAudit()`; `app/admin` layout+nav riêng; quản lý tài khoản (khóa/mở/sửa), thuê bao (kích hoạt/gia hạn/đổi/hủy + subscription_payments), gói (CRUD), thống kê, nhật ký; script `set-admin` + `test-rls-admin`. **Build+lint+unit PASS**; **migration+RLS test chờ chạy trên Supabase** |
+| 9 | Khu vực ADMIN | ✅ Gần đóng | migration `0016` **đã áp Supabase**; **`test-rls-admin` PASS 9/9** (cách ly subscription_payments/audit; admin không đọc nghiệp vụ); **seed 2 gói Pro**. Code: `assertAdmin()`+`writeAudit()`; `app/admin`; quản lý tài khoản/thuê bao/gói/thống kê/nhật ký. **Còn:** cấp admin đầu tiên + smoke test `/admin` |
 | 10 | Kiểm thử bảo mật & Phát hành | 🚧 Đang làm | **Phần code (không cần Supabase) đã xong + verify:** CI `.github/workflows/ci.yml` (quality: lint+test+build+quét bí mật; rls: test cách ly khi có secrets); security headers `next.config.ts`; `scripts/check-bundle-secrets.mjs` (bundle SẠCH 39 tệp). **Còn:** chạy test RLS trên Supabase thật, `listAccounts`→RPC, SMTP, landing, deploy |
 
 ---
@@ -135,11 +135,11 @@
 
 **Giai đoạn 9 — Khu vực ADMIN** (đối chiếu `docs/plans/GIAI_DOAN_9.md` + `docs/PERMISSIONS.md §4`)
 
-> ⚠️ Code + build + unit test + lint đã xong. **Migration `0016` và `test-rls-admin.mjs` CHƯA chạy trên Supabase thật** (môi trường phiên này không có `.env.local`). Cần chạy 2 bước đó để đóng GĐ9.
+> ✅ Migration `0016` đã áp Supabase; `test-rls-admin.mjs` **PASS 9/9** (2026-07-17). Đã seed 2 gói Pro. **Còn lại để đóng GĐ9:** cấp admin đầu tiên (`set-admin.mjs <email>` — cần tài khoản đã đăng ký) + smoke test `/admin`.
 
 | Hạng mục | Trạng thái | Ghi chú |
 |---|---|---|
-| Migration `0016_admin_subscriptions.sql` (3 enum + `subscription_payments` + `admin_audit_logs` + RLS) | 🧩 Viết xong, **chưa áp** | `subscription_payments`: USER đọc của mình / ADMIN toàn quyền; `admin_audit_logs`: chỉ ADMIN đọc, ghi qua `service_role`; `actor_id` ON DELETE RESTRICT (giữ log). **Dùng số `0016`** — plan ghi `0012` nhưng số đó đã dùng cho payables |
+| Migration `0016_admin_subscriptions.sql` (3 enum + `subscription_payments` + `admin_audit_logs` + RLS) | ✅ **Đã áp Supabase** | `subscription_payments`: USER đọc của mình / ADMIN toàn quyền; `admin_audit_logs`: chỉ ADMIN đọc, ghi qua `service_role`; `actor_id` ON DELETE RESTRICT (giữ log). **Dùng số `0016`** — plan ghi `0012` nhưng số đó đã dùng cho payables |
 | Bootstrap admin `scripts/set-admin.mjs` + `scripts/set-admin.md` | ✅ Xong | Đặt `app_metadata.role='admin'` qua `service_role` (+ đồng bộ `profiles.role`); có cờ `--revoke`; KHÔNG qua UI công khai |
 | Helper `lib/admin.ts` (`assertAdmin` + `writeAudit`) | ✅ Xong | `assertAdmin` đọc role từ JWT `app_metadata` (server-side, không tin middleware/client); `writeAudit` ghi qua admin client; `import 'server-only'` |
 | Validators `lib/validators/admin.ts` (nhãn + schema) | ✅ Xong | `activateSchema`/`renewSchema`/`changePlanSchema`/`accountUpdateSchema`/`planSchema` + nhãn tiếng Việt |
@@ -150,7 +150,7 @@
 | Server `plans-actions.ts` (CRUD gói) | ✅ Xong | `createPlan`/`updatePlan`; bắt trùng mã (`23505`) |
 | UI `/admin` (thống kê) + `/admin/tai-khoan` (list) + `/[id]` (chi tiết: sửa/khóa/thuê bao/lịch sử) | ✅ Xong | Panel thuê bao tự điền số tiền theo gói; responsive bảng/card |
 | UI `/admin/goi` (+`/moi` +`/[id]/sua`) + `/admin/nhat-ky` (lọc action + phân trang) | ✅ Xong | Dùng chung `PlanForm`; nhật ký hiển thị email + metadata |
-| Script `scripts/test-rls-admin.mjs` | 🧩 Viết xong, **chưa chạy** | USER không đọc/ghi `admin_audit_logs`; cách ly `subscription_payments`; ADMIN không đọc `students`; USER không tự kích hoạt thuê bao |
+| Script `scripts/test-rls-admin.mjs` | ✅ **PASS 9/9** (Supabase, 2026-07-17) | USER không đọc/ghi `admin_audit_logs`; cách ly `subscription_payments`; ADMIN không đọc `students`; USER không tự kích hoạt thuê bao |
 
 **Review GĐ9 (6 góc, max effort) — kết luận: KHÔNG có lỗ hổng cách ly P0; schema khớp tài liệu.** Đã sửa các bug/điểm cứng hóa sau (build+lint+test lại xanh):
 
@@ -223,7 +223,7 @@
 | `0013_report_views.sql` | 4 view `security_invoker` báo cáo (`v_cashflow_monthly` gom tháng giờ VN, `v_receivables_outstanding`, `v_payables_outstanding`, `v_upcoming_sessions`) + grant `authenticated` |
 | `0014_notifications.sql` | enum `notification_type` + bảng `notifications` + RLS 4 policy + 2 index |
 | `0015_storage_avatars.sql` | bucket Storage `avatars` (public) + 3 policy ghi/sửa/xóa theo tiền tố `user_id/` |
-| `0016_admin_subscriptions.sql` | **⏳ CHƯA áp** — 3 enum (`subscription_payment_status`/`subscription_event_kind`/`admin_action`) + `subscription_payments` + `admin_audit_logs` + RLS (`is_admin()`) |
+| `0016_admin_subscriptions.sql` | ✅ **Đã áp** — 3 enum (`subscription_payment_status`/`subscription_event_kind`/`admin_action`) + `subscription_payments` + `admin_audit_logs` + RLS (`is_admin()`) |
 
 Áp bằng: `node --env-file=.env.local scripts/run-migration.mjs supabase/migrations/<file.sql>` (cần `SUPABASE_DB_URL` trong `.env.local`).
 **GĐ9 cần chạy:** `node --env-file=.env.local scripts/run-migration.mjs supabase/migrations/0016_admin_subscriptions.sql`
@@ -270,10 +270,8 @@ node --env-file=.env.local scripts/test-rls-admin.mjs             # test cách l
 
 ## 9. Bước kế tiếp
 
-1. **Đóng GĐ9 trên Supabase thật** (cần `.env.local` có `SUPABASE_DB_URL` + `SUPABASE_SERVICE_ROLE_KEY`):
-   - Áp migration: `node --env-file=.env.local scripts/run-migration.mjs supabase/migrations/0016_admin_subscriptions.sql`
-   - Cấp admin đầu tiên: `node --env-file=.env.local scripts/set-admin.mjs <email-của-bạn>` → đăng xuất/đăng nhập lại.
-   - Chạy test cách ly: `node --env-file=.env.local scripts/test-rls-admin.mjs` (phải PASS trước khi đóng GĐ9).
-   - Kiểm thử tay: đăng nhập admin → `/admin` (thống kê), tạo gói ở `/admin/goi`, vào một tài khoản → kích hoạt/gia hạn/khóa → xem `/admin/nhat-ky`.
+1. **Đóng nốt GĐ9** (migration `0016` đã áp · `test-rls-admin` PASS 9/9 · seed 2 gói — đều xong 2026-07-17):
+   - **Cấp admin đầu tiên:** đăng ký tài khoản qua `/dang-ky` → `node --env-file=.env.local scripts/set-admin.mjs <email-đã-đăng-ký>` → đăng xuất/đăng nhập lại. *(email `vuvanquyen655@gmail.com` hiện chưa có tài khoản.)*
+   - **Smoke test tay:** đăng nhập admin → `/admin` (thống kê), `/admin/goi` (đã có 2 gói), vào một tài khoản → kích hoạt/gia hạn/khóa → xem `/admin/nhat-ky`.
 2. **Giai đoạn 10 — Kiểm thử bảo mật & Phát hành**: chạy trọn bộ kiểm thử phân quyền `docs/PERMISSIONS.md §8` (9 mục, gồm chặn `/admin/**` cho USER thường ở tầng server), tối ưu, chuẩn bị phát hành.
 3. (Tùy chọn, đã cân nhắc ở GĐ8) Migration siết RLS cột `profiles` để chặn USER tự đổi `is_locked` ở tầng CSDL — hiện đã chặn ở `0003` (revoke UPDATE, chỉ cấp `full_name/phone/avatar_url`), nên rủi ro đã được xử lý.
