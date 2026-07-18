@@ -20,10 +20,10 @@ Bối cảnh: **Việt Nam**. Giao diện **tiếng Việt**, tiền tệ **VND*
 
 | Mục | Trạng thái |
 |---|---|
-| Giai đoạn | **Giai đoạn 9 gần đóng** — `0016` đã áp Supabase, `test-rls-admin` PASS 9/9, seed 2 gói; còn cấp admin đầu tiên + smoke test `/admin`. **Giai đoạn 10 đã khởi động:** CI + security headers + quét bí mật bundle |
+| Giai đoạn | **Giai đoạn 9 gần đóng** — `0016` đã áp Supabase, `test-rls-admin` PASS 9/9, seed 2 gói, admin đầu tiên đã có, dọn 15 user test sót; còn smoke test `/admin`. **Giai đoạn 10 đã khởi động:** CI + security headers + quét bí mật bundle |
 | Đã có | GĐ0–8 (đã áp DB): Next.js App Router + TS + Tailwind + shadcn/ui; Supabase (3 client + RLS + Storage); Auth/hồ sơ; CRUD học sinh/bài học/tài liệu/lịch buổi/điểm danh; Tài chính (phải thu + phải trả + sổ thu/chi + hạn thanh toán); Báo cáo + Dashboard; Cài đặt + Thông báo; migrations `0001`→`0015` đã áp. **GĐ9 (code, build+lint+test PASS):** khu `app/admin` riêng, `assertAdmin`/`writeAudit`, quản lý tài khoản/thuê bao/gói + audit + thống kê; migration `0016` |
-| Chưa có | Cấp admin đầu tiên + smoke test `/admin` (đóng nốt GĐ9); GĐ10 còn: test RLS trên Supabase thật/CI, `listAccounts`→RPC, SMTP, landing, deploy |
-| Việc kế tiếp | Đăng ký tài khoản → `set-admin.mjs` → smoke test `/admin`; rồi tiếp GĐ10 (xem `docs/RELEASE_CHECKLIST.md`) |
+| Chưa có | Smoke test `/admin` (đóng nốt GĐ9); GĐ10 còn: CI RLS trỏ project test, `listAccounts`→RPC, SMTP, landing, deploy |
+| Việc kế tiếp | Smoke test `/admin` (admin `vanquyenvu517@gmail.com`); rồi tiếp GĐ10 (xem `docs/RELEASE_CHECKLIST.md`) |
 
 ---
 

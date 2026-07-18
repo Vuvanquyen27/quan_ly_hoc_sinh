@@ -1,7 +1,7 @@
 # IMPLEMENTATION STATUS — Trạng thái triển khai
 
 **Ngày cập nhật:** 2026-07-16
-**Giai đoạn hiện tại:** Giai đoạn 9 **gần đóng** — migration `0016` đã áp Supabase thật, `test-rls-admin` **PASS 9/9**, đã seed 2 gói Pro; **còn:** cấp admin đầu tiên (chờ tài khoản đăng ký) + smoke test `/admin`. **Giai đoạn 10 đã khởi động:** CI + security headers + quét bí mật bundle
+**Giai đoạn hiện tại:** Giai đoạn 9 **gần đóng** — migration `0016` đã áp Supabase thật, `test-rls-admin` **PASS 9/9**, seed 2 gói Pro, **admin đầu tiên đã có** (`vanquyenvu517@gmail.com`), đã dọn 15 user test sót; **còn:** smoke test `/admin`. **Giai đoạn 10 đã khởi động:** CI + security headers + quét bí mật bundle
 **Nhánh làm việc:** `claude/codebase-review-guidance-jac3k3`
 
 ---
@@ -22,7 +22,7 @@
 | 6 | Tài chính: Phải trả & Sổ thu/chi | ✅ Xong | migration `0012`; RLS payables PASS; trigger `recalc_payable_paid`; sub-nav tabs; phải trả (list/tạo/chi tiết/sửa/trả dần); sổ thu/chi + danh mục; hạn thanh toán (gộp 2 chiều) + lịch sử |
 | 7 | Báo cáo & Dashboard | ✅ Xong | migration `0013` (4 view `security_invoker`, gom tháng giờ VN); RLS view PASS + đối chiếu số liệu PASS; `/bao-cao` (kỳ + tổng + biểu đồ CSS/SVG + công nợ + quá hạn); `/tong-quan` chỉ số thật + buổi sắp tới + cảnh báo + biểu đồ 6 tháng; nav "Báo cáo" |
 | 8 | Cài đặt & Thông báo | ✅ Xong | migration `0014` (notifications+RLS) `0015` (bucket avatars public); RLS notifications+avatars PASS; `/cai-dat` (hồ sơ+avatar+tùy chọn+gói); `/thong-bao` + chuông header; nút "Tạo nhắc nhở" (dedup, gate prefs); cài đặt lưu, hiển thị VN cố định MVP |
-| 9 | Khu vực ADMIN | ✅ Gần đóng | migration `0016` **đã áp Supabase**; **`test-rls-admin` PASS 9/9** (cách ly subscription_payments/audit; admin không đọc nghiệp vụ); **seed 2 gói Pro**. Code: `assertAdmin()`+`writeAudit()`; `app/admin`; quản lý tài khoản/thuê bao/gói/thống kê/nhật ký. **Còn:** cấp admin đầu tiên + smoke test `/admin` |
+| 9 | Khu vực ADMIN | ✅ Gần đóng | migration `0016` **đã áp Supabase**; **`test-rls-admin` PASS 9/9** (cách ly subscription_payments/audit; admin không đọc nghiệp vụ); **seed 2 gói Pro**. Code: `assertAdmin()`+`writeAudit()`; `app/admin`; quản lý tài khoản/thuê bao/gói/thống kê/nhật ký. **Admin đầu tiên đã có** (`vanquyenvu517@gmail.com`); đã dọn 15 user test. **Còn:** smoke test `/admin` |
 | 10 | Kiểm thử bảo mật & Phát hành | 🚧 Đang làm | **Phần code (không cần Supabase) đã xong + verify:** CI `.github/workflows/ci.yml` (quality: lint+test+build+quét bí mật; rls: test cách ly khi có secrets); security headers `next.config.ts`; `scripts/check-bundle-secrets.mjs` (bundle SẠCH 39 tệp). **Còn:** chạy test RLS trên Supabase thật, `listAccounts`→RPC, SMTP, landing, deploy |
 
 ---
@@ -135,7 +135,7 @@
 
 **Giai đoạn 9 — Khu vực ADMIN** (đối chiếu `docs/plans/GIAI_DOAN_9.md` + `docs/PERMISSIONS.md §4`)
 
-> ✅ Migration `0016` đã áp Supabase; `test-rls-admin.mjs` **PASS 9/9** (2026-07-17). Đã seed 2 gói Pro. **Còn lại để đóng GĐ9:** cấp admin đầu tiên (`set-admin.mjs <email>` — cần tài khoản đã đăng ký) + smoke test `/admin`.
+> ✅ Migration `0016` đã áp Supabase; `test-rls-admin.mjs` **PASS 9/9** (2026-07-17). Seed 2 gói Pro. **Admin đầu tiên đã có** (`vanquyenvu517@gmail.com`, role=admin). Đã dọn 15 tài khoản test sót trên production (`scripts/cleanup-test-users.mjs`) — còn đúng 2 tài khoản thật. **Còn lại để đóng GĐ9:** smoke test `/admin`.
 
 | Hạng mục | Trạng thái | Ghi chú |
 |---|---|---|
@@ -270,8 +270,7 @@ node --env-file=.env.local scripts/test-rls-admin.mjs             # test cách l
 
 ## 9. Bước kế tiếp
 
-1. **Đóng nốt GĐ9** (migration `0016` đã áp · `test-rls-admin` PASS 9/9 · seed 2 gói — đều xong 2026-07-17):
-   - **Cấp admin đầu tiên:** đăng ký tài khoản qua `/dang-ky` → `node --env-file=.env.local scripts/set-admin.mjs <email-đã-đăng-ký>` → đăng xuất/đăng nhập lại. *(email `vuvanquyen655@gmail.com` hiện chưa có tài khoản.)*
-   - **Smoke test tay:** đăng nhập admin → `/admin` (thống kê), `/admin/goi` (đã có 2 gói), vào một tài khoản → kích hoạt/gia hạn/khóa → xem `/admin/nhat-ky`.
+1. **Đóng nốt GĐ9** (migration `0016` áp · `test-rls-admin` PASS 9/9 · seed 2 gói · admin đầu tiên đã có · dọn 15 user test — 2026-07-17→18):
+   - **Smoke test tay:** đăng nhập admin `vanquyenvu517@gmail.com` → `/admin` (thống kê), `/admin/goi` (đã có 2 gói), vào một tài khoản → kích hoạt/gia hạn/khóa → xem `/admin/nhat-ky`.
 2. **Giai đoạn 10 — Kiểm thử bảo mật & Phát hành**: chạy trọn bộ kiểm thử phân quyền `docs/PERMISSIONS.md §8` (9 mục, gồm chặn `/admin/**` cho USER thường ở tầng server), tối ưu, chuẩn bị phát hành.
 3. (Tùy chọn, đã cân nhắc ở GĐ8) Migration siết RLS cột `profiles` để chặn USER tự đổi `is_locked` ở tầng CSDL — hiện đã chặn ở `0003` (revoke UPDATE, chỉ cấp `full_name/phone/avatar_url`), nên rủi ro đã được xử lý.
